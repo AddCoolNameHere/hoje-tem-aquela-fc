@@ -203,6 +203,7 @@
       </p>
       <div class="btn-row" style="margin-bottom:14px">
         <button class="btn" id="btnPosPadrao">Usar as posições padrão dos arquétipos</button>
+        <button class="btn" id="btnPuxarRepo">Puxar cartas novas do repositório</button>
       </div>
       <div id="playerRows"></div>
       <div class="btn-row" style="margin-top:14px">
@@ -483,7 +484,8 @@ const LS_PLAYERS = 'htafc:players';
 const LS_BLOBS   = 'htafc:cardblobs';
 const POSITIONS = ['GK','CB','LB','RB','LWB','RWB','CDM','CM','CAM','LM','RM','LW','RW','CF','ST'];
 
-let basePlayers = [];   // o que está em data/players.json
+let repoPlayers = [];   // o que está commitado em data/players.json
+let basePlayers = [];   // o ponto de partida (o publicado, se houver; senão o repositório)
 let editPlayers = [];   // o que está sendo editado aqui
 
 const esc = s => String(s ?? '').replace(/"/g, '&quot;');
@@ -570,6 +572,38 @@ $('#playerRows').addEventListener('click', e => {
 $('#btnApplyPlayers').addEventListener('click', () => {
   localStorage.setItem(LS_PLAYERS, JSON.stringify(editPlayers));
   toast('Elenco aplicado neste navegador');
+});
+
+/* Traz o que foi commitado no repositório e ainda não está aqui.
+   Só ACRESCENTA: nada que você editou ou removeu volta atrás. */
+$('#btnPuxarRepo').addEventListener('click', () => {
+  if (!repoPlayers.length) return toast('Não consegui ler o data/players.json');
+
+  const idsDeCarta = new Set(editPlayers.flatMap(p => p.cards.map(c => c.id)));
+  const novidades = [];
+
+  normalize(repoPlayers).forEach(rp => {
+    let alvo = editPlayers.find(p => p.id === rp.id);
+
+    if (!alvo) {
+      alvo = { ...rp, cards: [] };
+      editPlayers.push(alvo);
+      novidades.push(`jogador ${rp.name}`);
+    }
+    rp.cards.forEach(c => {
+      if (!idsDeCarta.has(c.id)) {
+        alvo.cards.push({ ...c });
+        idsDeCarta.add(c.id);
+        novidades.push(`${alvo.name}: ${c.archetype || c.id}`);
+      }
+    });
+  });
+
+  if (!novidades.length) return toast('Nada novo no repositório');
+
+  renderPlayers();
+  msg(`Trouxe ${novidades.length}: ${novidades.join(' · ')}. Publique para valer pro time.`, 'var(--gold)');
+  toast(`${novidades.length} novidade(s) do repositório`);
 });
 
 /* Preenche a posição de cada carta com a padrão do arquétipo dela. */
@@ -752,8 +786,9 @@ $('#btnAddCard').addEventListener('click', () => {
 
   try {
     const res = await fetch('data/players.json', { cache: 'no-store' });
-    if (res.ok) basePlayers = (await res.json()).players || [];
+    if (res.ok) repoPlayers = (await res.json()).players || [];
   } catch (e) { /* elenco vazio */ }
+  basePlayers = repoPlayers;
 
   // por cima: o que já está publicado, que é o que o time está vendo
   const d = await acharAPI();

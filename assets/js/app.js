@@ -14,7 +14,8 @@ const LS_STATE   = 'htafc:state';
 const API_ABS = 'https://fusslabs.com/api';
 let API = '/api';
 
-let publicadoEm = null;   // quando o admin publicou pela última vez
+let publicadoEm = null;    // quando o admin publicou pela última vez
+let rascunhoLocal = false; // true quando a tela mostra um teste local, não o publicado
 
 const BENCH_SIZE = 7;
 
@@ -112,27 +113,33 @@ async function loadData() {
 
   const compartilhado = await loadShared();
 
+  // 2) o que o admin publicou vale para todo mundo e ganha do repositório
   if (compartilhado) {
-    // o que o admin publicou vale para todo mundo e ganha do repositório
     if (compartilhado.club) club = { ...club, ...compartilhado.club };
     if (Array.isArray(compartilhado.players) && compartilhado.players.length) {
       raw = compartilhado.players;
     }
     publicadoEm = compartilhado.atualizadoEm || null;
-  } else {
-    // nada publicado ainda: usa o rascunho local do admin, se existir
-    try {
-      const override = JSON.parse(localStorage.getItem(LS_CLUB) || 'null');
-      if (override) club = { ...club, ...override };
-    } catch (e) { /* ignora override corrompido */ }
-
-    try {
-      const edits = JSON.parse(localStorage.getItem(LS_PLAYERS) || 'null');
-      if (Array.isArray(edits) && edits.length) raw = edits;
-    } catch (e) { /* ignora edição corrompida */ }
   }
 
+  // 3) por último o rascunho deste navegador, se alguém apertou "testar aqui"
+  try {
+    const override = JSON.parse(localStorage.getItem(LS_CLUB) || 'null');
+    if (override) { club = { ...club, ...override }; rascunhoLocal = true; }
+  } catch (e) { /* ignora override corrompido */ }
+
+  try {
+    const edits = JSON.parse(localStorage.getItem(LS_PLAYERS) || 'null');
+    if (Array.isArray(edits) && edits.length) { raw = edits; rascunhoLocal = true; }
+  } catch (e) { /* ignora edição corrompida */ }
+
   buildRoster(raw);
+}
+
+/** Avisa que a tela não é a publicada, para ninguém achar que o time está vendo isso. */
+function renderAvisoRascunho() {
+  const el = $('#avisoRascunho');
+  el.hidden = !rascunhoLocal;
 }
 
 /** Normaliza o elenco e monta a lista achatada de cartas. */
@@ -935,6 +942,12 @@ function setupControls() {
 
   $('#rosterSearch').addEventListener('input', renderRoster);
 
+  $('#btnDescartarRascunho').addEventListener('click', () => {
+    localStorage.removeItem(LS_CLUB);
+    localStorage.removeItem(LS_PLAYERS);
+    location.reload();
+  });
+
   $('#squadName').addEventListener('input', e => { state.squadName = e.target.value; saveState(); });
 
   $('#btnSave').addEventListener('click', saveSquad);
@@ -969,6 +982,7 @@ function setupControls() {
 (async function init() {
   await loadData();
   renderClub();
+  renderAvisoRascunho();
   restoreState();
 
   const hash = location.hash.match(/^#e=(.+)$/);

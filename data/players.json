@@ -34,7 +34,8 @@
     {
       "id": "lucasvvcq", "name": "Maia", "gamertag": "LucasVvcq_",
       "cards": [
-        { "id": "lucasvvcq-magician", "archetype": "MAGICIAN+", "position": "LW/RW", "rating": 97, "card": "cards/lucasvvcq/lucasvvcq.jpg" }
+        { "id": "lucasvvcq-magician", "archetype": "MAGICIAN+", "position": "LW/RW", "rating": 97, "card": "cards/lucasvvcq/lucasvvcq.jpg" },
+        { "id": "lucasvvcq-boss",     "archetype": "BOSS+",     "position": "CB",    "rating": 83, "card": "cards/lucasvvcq/lucasvvcq-boss.jpg" }
       ]
     },
     {

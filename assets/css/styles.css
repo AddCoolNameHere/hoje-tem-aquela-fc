@@ -154,6 +154,22 @@ input, select { font-family: inherit; }
 }
 .ghost-link:hover { color: var(--green); border-color: var(--line); background: var(--panel); }
 
+.aviso-rascunho {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 20px;
+  background: rgba(245, 197, 66, .1);
+  border-bottom: 1px solid rgba(245, 197, 66, .3);
+  color: #e0cf9a;
+  font-size: 12.5px;
+}
+.aviso-rascunho[hidden] { display: none; }
+.aviso-rascunho strong { color: var(--gold); }
+.aviso-rascunho .btn { padding: 5px 11px; font-size: 10.5px; }
+
 /* -------------------------------------------------------------------- shell */
 
 .layout {
