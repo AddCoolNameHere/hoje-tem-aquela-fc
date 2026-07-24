@@ -9,79 +9,79 @@
     "cards[].archetype": "arquétipo do Clubs (JOKER, SPARK+, THIEF...)",
     "cards[].position": "posição natural dessa carta, várias separadas por / — GK, CB, LB, RB, LWB, RWB, CDM, CM, CAM, LM, RM, LW, RW, CF, ST",
     "cards[].rating": "o LEVEL da carta",
-    "cards[].card": "caminho da imagem, ex.: cards/boliclifer.jpg"
+    "cards[].card": "caminho da imagem, ex.: cards/boliclifer/boliclifer.jpg"
   },
   "players": [
     {
       "id": "lucasfms00", "name": "Lucasfms00", "gamertag": "Lucasfms00",
       "cards": [
-        { "id": "lucasfms00-finisher", "archetype": "FINISHER+", "position": "ST", "rating": 100, "card": "cards/lucasfms00.jpg" }
+        { "id": "lucasfms00-finisher", "archetype": "FINISHER+", "position": "ST", "rating": 100, "card": "cards/lucasfms00/lucasfms00.jpg" }
       ]
     },
     {
       "id": "caiogmelo", "name": "CaioGMelo", "gamertag": "CaioGMelo",
       "cards": [
-        { "id": "caiogmelo-thief", "archetype": "THIEF", "position": "CB", "rating": 100, "card": "cards/caiogmelo.jpg" }
+        { "id": "caiogmelo-thief", "archetype": "THIEF", "position": "CB", "rating": 100, "card": "cards/caiogmelo/caiogmelo.jpg" }
       ]
     },
     {
       "id": "duduitaborahy", "name": "DuduItaborahy", "gamertag": "DuduItaborahy",
       "cards": [
-        { "id": "duduitaborahy-spark", "archetype": "SPARK", "position": "RW", "rating": 97, "card": "cards/duduitaborahy.jpg" }
+        { "id": "duduitaborahy-spark", "archetype": "SPARK", "position": "RW", "rating": 97, "card": "cards/duduitaborahy/duduitaborahy.jpg" }
       ]
     },
     {
       "id": "lucasvvcq", "name": "LucasVvcq_", "gamertag": "LucasVvcq_",
       "cards": [
-        { "id": "lucasvvcq-magician", "archetype": "MAGICIAN+", "position": "LW", "rating": 97, "card": "cards/lucasvvcq.jpg" }
+        { "id": "lucasvvcq-magician", "archetype": "MAGICIAN+", "position": "LW", "rating": 97, "card": "cards/lucasvvcq/lucasvvcq.jpg" }
       ]
     },
     {
       "id": "boliclifer", "name": "boliclifer", "gamertag": "boliclifer",
       "cards": [
-        { "id": "boliclifer-joker", "archetype": "JOKER", "position": "CAM", "rating": 86, "card": "cards/boliclifer.jpg" }
+        { "id": "boliclifer-joker", "archetype": "JOKER", "position": "CAM", "rating": 86, "card": "cards/boliclifer/boliclifer.jpg" }
       ]
     },
     {
       "id": "alfacebilingue", "name": "AlfaceBilingue", "gamertag": "AlfaceBilingue",
       "cards": [
-        { "id": "alfacebilingue-magician", "archetype": "MAGICIAN+", "position": "LW/CF", "rating": 83, "card": "cards/alfacebilingue.jpg" }
+        { "id": "alfacebilingue-magician", "archetype": "MAGICIAN+", "position": "LW/CF", "rating": 83, "card": "cards/alfacebilingue/alfacebilingue.jpg" }
       ]
     },
     {
       "id": "marblesquire834", "name": "MarbleSquire834", "gamertag": "MarbleSquire834",
       "cards": [
-        { "id": "marblesquire834-recycler", "archetype": "RECYCLER", "position": "CDM", "rating": 83, "card": "cards/marblesquire834.jpg" }
+        { "id": "marblesquire834-recycler", "archetype": "RECYCLER", "position": "CDM", "rating": 83, "card": "cards/marblesquire834/marblesquire834.jpg" }
       ]
     },
     {
       "id": "danilocrf1", "name": "DaniloCRF1", "gamertag": "DaniloCRF1",
       "cards": [
-        { "id": "danilocrf1-progressor", "archetype": "PROGRESSOR", "position": "CM", "rating": 83, "card": "cards/danilocrf1.jpg" }
+        { "id": "danilocrf1-progressor", "archetype": "PROGRESSOR", "position": "CM", "rating": 83, "card": "cards/danilocrf1/danilocrf1.jpg" }
       ]
     },
     {
       "id": "capelloko", "name": "Capelloko", "gamertag": "Capelloko",
       "cards": [
-        { "id": "capelloko-spark", "archetype": "SPARK+", "position": "RW/RM", "rating": 81, "card": "cards/capelloko.jpg" }
+        { "id": "capelloko-spark", "archetype": "SPARK+", "position": "RW/RM", "rating": 81, "card": "cards/capelloko/capelloko.jpg" }
       ]
     },
     {
       "id": "rafsvasc", "name": "rafsvasc", "gamertag": "rafsvasc",
       "cards": [
-        { "id": "rafsvasc-thief", "archetype": "THIEF", "position": "CB", "rating": 60, "card": "cards/rafsvasc.jpg" }
+        { "id": "rafsvasc-thief", "archetype": "THIEF", "position": "CB", "rating": 60, "card": "cards/rafsvasc/rafsvasc.jpg" }
       ]
     },
     {
       "id": "llnoronha", "name": "LLNoronha", "gamertag": "LLNoronha",
       "cards": [
-        { "id": "llnoronha-creator", "archetype": "CREATOR", "position": "CAM", "rating": 60, "card": "cards/llnoronha.jpg" }
+        { "id": "llnoronha-creator", "archetype": "CREATOR", "position": "CAM", "rating": 60, "card": "cards/llnoronha/llnoronha.jpg" }
       ]
     },
     {
       "id": "perkystorm73532", "name": "PerkyStorm73532", "gamertag": "PerkyStorm73532",
       "cards": [
-        { "id": "perkystorm73532-maestro", "archetype": "MAESTRO", "position": "CM", "rating": 55, "card": "cards/perkystorm73532.jpg" }
+        { "id": "perkystorm73532-maestro", "archetype": "MAESTRO", "position": "CM", "rating": 55, "card": "cards/perkystorm73532/perkystorm73532.jpg" }
       ]
     }
   ]

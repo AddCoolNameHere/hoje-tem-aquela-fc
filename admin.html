@@ -195,7 +195,13 @@
       <p style="font-size:12px;color:var(--txt-faint);margin:0 0 14px;line-height:1.6">
         Escolha o print do menu <strong>Club Squad</strong> — o recorte da moldura sai sozinho.
         Confira a prévia, ajuste se precisar, e clique em <strong>Adicionar ao elenco</strong>.
-        Depois baixe o recorte e coloque em <code style="color:var(--green)">cards/</code> no repositório.
+        Depois baixe o recorte e coloque na pasta do jogador,
+        em <code style="color:var(--green)">cards/&lt;jogador&gt;/</code>.
+      </p>
+      <p style="font-size:12px;color:var(--txt-faint);margin:-6px 0 14px;line-height:1.6">
+        Se preferir fazer tudo pelo computador: jogue o print dentro da pasta do jogador e dê
+        dois cliques em <code style="color:var(--green)">Recortar cartas.bat</code> — ele recorta,
+        pergunta os dados e já cadastra no elenco.
       </p>
 
       <div class="crop-grid">
@@ -529,7 +535,6 @@ $('#btnAddCard').addEventListener('click', () => {
   const filename = ($('#fFile').value || '').trim();
   if (!filename) return toast('Preencha o nome do arquivo');
 
-  const path = `cards/${filename}.jpg`;
   const archetype = $('#fArchetype').value.trim();
   const position  = $('#fPosition').value.trim();
   const rating    = $('#fRating').value === '' ? null : +$('#fRating').value;
@@ -543,6 +548,9 @@ $('#btnAddCard').addEventListener('click', () => {
   } else {
     player = editPlayers.find(p => p.id === $('#fPlayer').value);
   }
+
+  // cada jogador tem a própria pasta em cards/
+  const path = `cards/${player.id}/${filename}.jpg`;
 
   // id de carta único em todo o elenco
   const taken = new Set(editPlayers.flatMap(p => p.cards.map(c => c.id)));

@@ -20,14 +20,19 @@ verde = posição natural, amarelo = fora de posição mas jogável, vermelho = 
 ## Estrutura
 
 ```
-index.html            página principal (montador)
-admin.html            painel de admin (divisão atual)
-assets/css/styles.css tema verde e preto
-assets/js/formations.js  as 29 formações com coordenadas
-assets/js/app.js      lógica do montador
-cards/                PNGs das cartas dos jogadores
-data/club.json        nome do clube + divisão atual
-data/players.json     elenco
+index.html                    página principal (montador)
+admin.html                    painel de admin
+assets/css/styles.css         tema verde e preto
+assets/js/formations.js       as 29 formações com coordenadas
+assets/js/app.js              lógica do montador
+cards/<jogador>/              uma pasta por jogador
+cards/<jogador>/*.jpg         as cartas dele
+cards/<jogador>/Recortar cartas.bat
+cards/<jogador>/prints/       prints originais (fora do git)
+tools/recortar-cartas.ps1     o recortador
+tools/Recortar TODAS as cartas.bat
+data/club.json                nome do clube + divisão atual
+data/players.json             elenco
 ```
 
 ## Cartas e variantes
@@ -55,12 +60,31 @@ Se `card` for `null`, o site desenha sozinho uma carta verde e preta com as inic
 > As posições atuais foram **deduzidas** do arquétipo e dos atributos de cada carta —
 > o print do Club Squad não mostra a posição. Confira em `admin.html`.
 
-### Recorte automático
+## Adicionando uma carta nova
 
-As imagens em `cards/` são recortes dos prints do menu **Club Squad**. Num print 4K
-(3840x2160) a moldura da carta fica em `x=249, y=290, 720x995` — o que dá
-`6.48% / 13.43% / 18.75% / 46.06%` da imagem, e é isso que o admin usa por padrão para
-qualquer resolução 16:9.
+Cada jogador tem a própria pasta em `cards/`. Para adicionar uma carta:
+
+1. Tire o print da carta no menu **Club Squad** do jogo.
+2. Jogue o print dentro de `cards/<jogador>/`.
+3. Dê dois cliques em **`Recortar cartas.bat`** ali mesmo.
+
+O script acha o print, recorta a moldura da carta, pergunta arquétipo, posição e overall,
+salva o `.jpg` na pasta e já cadastra em `data/players.json`. O print original vai para a
+subpasta `prints/` (fora do git) para não ser recortado de novo. Depois é só commitar.
+
+Para varrer todas as pastas de uma vez: `tools\Recortar TODAS as cartas.bat`.
+
+Também dá para fazer pelo navegador, sem baixar nada, na seção **Adicionar carta** do
+`admin.html` — mas aí o `.jpg` tem que ser colocado na pasta e commitado na mão.
+
+### Como o recorte funciona
+
+Num print 4K (3840x2160) a moldura da carta fica em `x=249, y=290, 720x995` — o que dá
+`6.48% / 13.43% / 18.75% / 46.06%` da imagem. Em porcentagem funciona para qualquer
+resolução 16:9. A saída é um JPEG de 480x663.
+
+O script só mexe em imagens 16:9 com pelo menos 1280px de largura, então ele nunca
+recorta uma carta que já foi recortada.
 
 ## Admin
 

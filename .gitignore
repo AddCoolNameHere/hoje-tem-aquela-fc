@@ -1,6 +1,12 @@
-﻿Thumbs.db
+Thumbs.db
 desktop.ini
 .DS_Store
 *.psd
 *.xcf
+
+# prints originais — ficam só na máquina de quem recortou
 _originais/
+cards/*/prints/
+
+# backup que o recortador faz antes de mexer no elenco
+*.bak
