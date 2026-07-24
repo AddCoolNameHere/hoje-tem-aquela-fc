@@ -29,9 +29,10 @@
   --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   /* Carta = 117x169 num gramado de 900x650, convertido para % da área do campo.
-     A área do campo é maior que o gramado para as cartas da frente poderem "vazar" por cima. */
+     A área do campo é maior que o gramado: sobra em cima para as cartas da frente
+     "vazarem" por cima, e embaixo para a etiqueta de posição e o nome do jogador. */
   --card-w: 12.2%;
-  --card-h: 19.4%;   /* mantém a proporção 720x995 do recorte */
+  --card-h: 18.3%;   /* mantém a proporção 720x995 do recorte */
 }
 
 * { box-sizing: border-box; }
@@ -227,7 +228,7 @@ input, select { font-family: inherit; }
 .pitch-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 900 / 780;
+  aspect-ratio: 900 / 830;
   border-radius: var(--radius-lg);
   background: radial-gradient(120% 90% at 50% 0%, #0f2418, #060d09 78%);
   border: 1px solid var(--line);
@@ -238,7 +239,7 @@ input, select { font-family: inherit; }
 /* gramado em perspectiva (trapézio), separado dos jogadores para não distorcê-los */
 .pitch-turf {
   position: absolute;
-  inset: 15% 3% 2%;
+  inset: 11% 3% 9%;
   background:
     repeating-linear-gradient(180deg,
       rgba(255, 255, 255, .035) 0 8.33%,
@@ -251,7 +252,7 @@ input, select { font-family: inherit; }
 /* marcações do campo desenhadas em SVG por cima do gramado */
 .pitch-lines {
   position: absolute;
-  inset: 15% 3% 2%;
+  inset: 11% 3% 9%;
   clip-path: polygon(14% 0%, 86% 0%, 100% 100%, 0% 100%);
   pointer-events: none;
   opacity: .55;
@@ -345,6 +346,31 @@ input, select { font-family: inherit; }
 .slot.fit-natural .slot-pos { color: var(--green); border-color: var(--green-dim); }
 .slot.fit-related .slot-pos { color: var(--gold);  border-color: rgba(245, 197, 66, .45); }
 .slot.fit-out     .slot-pos { color: #ff7b6b;      border-color: rgba(255, 123, 107, .45); }
+
+/* nome do jogador, logo abaixo da posição — pra quando a foto não entrega quem é */
+.slot-name {
+  position: absolute;
+  left: 50%;
+  bottom: -30px;
+  transform: translateX(-50%);
+  z-index: 3;
+  max-width: 155%;
+  padding: 1px 7px;
+  border-radius: 5px;
+  background: rgba(4, 12, 8, .82);
+  border: 1px solid var(--line-soft);
+  font-size: clamp(8px, .92vw, 11px);
+  font-weight: 600;
+  letter-spacing: .01em;
+  line-height: 1.45;
+  color: var(--txt-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  pointer-events: none;
+}
+.slot:hover .slot-name { color: var(--txt); border-color: var(--line); }
 
 /* botão de remover */
 .slot-remove {
@@ -451,7 +477,7 @@ input, select { font-family: inherit; }
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  padding: 4px 8px 12px;
+  padding: 4px 8px 32px;   /* espaço para a posição e o nome embaixo da carta */
 }
 .bench .bench-slot {
   position: relative;
@@ -463,7 +489,8 @@ input, select { font-family: inherit; }
 }
 .bench .bench-slot .slot-inner { width: 100%; height: 100%; }
 .bench .bench-slot:hover .slot-inner { transform: translateY(-4px); }
-.bench .bench-slot .slot-pos { bottom: -8px; }
+.bench .bench-slot .slot-pos  { bottom: -8px; }
+.bench .bench-slot .slot-name { bottom: -28px; max-width: 128%; }
 
 /* --------------------------------------------------------------------- elenco */
 
@@ -755,7 +782,8 @@ input, select { font-family: inherit; }
   .division-badge .num { width: 25px; height: 25px; font-size: 14px; }
   .stage-head h1 { font-size: 22px; }
   .formation-grid { grid-template-columns: repeat(2, 1fr); }
-  .slot-pos { bottom: -7px; padding: 1px 6px; }
+  .slot-pos  { bottom: -7px; padding: 1px 6px; }
+  .slot-name { bottom: -25px; padding: 0 5px; max-width: 170%; }
 }
 
 /* barra de rolagem */

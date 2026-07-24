@@ -193,9 +193,9 @@ window.__genCard = genCard;
 
 /* ---------------------------------------------------------------- render campo */
 
-/* O gramado ocupa só parte da área do campo (inset 15% 3% 3%), então as coordenadas
+/* O gramado ocupa só parte da área do campo (inset 11% 3% 9%), então as coordenadas
    das formações são remapeadas para dentro dessa faixa. */
-const TURF = { left: 3, top: 15, w: 94, h: 83 };
+const TURF = { left: 3, top: 11, w: 94, h: 80 };
 
 function renderPitch() {
   const pitch = $('#pitch');
@@ -223,6 +223,7 @@ function renderPitch() {
         ${player ? cardHTML(player) : '<div class="slot-empty"></div>'}
       </div>
       <span class="slot-pos">${pos}</span>
+      ${player ? `<span class="slot-name" title="${player.name}">${player.name}</span>` : ''}
       ${player ? '<button class="slot-remove" title="Tirar do time">×</button>' : ''}`;
 
     pitch.appendChild(el);
@@ -256,6 +257,7 @@ function renderBench() {
         ${player ? cardHTML(player) : '<div class="slot-empty"></div>'}
       </div>
       <span class="slot-pos">${player ? (player.position || '').split('/')[0] || 'RES' : 'RES'}</span>
+      ${player ? `<span class="slot-name" title="${player.name}">${player.name}</span>` : ''}
       ${player ? '<button class="slot-remove" title="Tirar da reserva">×</button>' : ''}`;
 
     bench.appendChild(el);
