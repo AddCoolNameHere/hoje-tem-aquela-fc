@@ -151,8 +151,41 @@ input, select { font-family: inherit; }
   padding: 8px 12px;
   border-radius: var(--radius);
   border: 1px solid transparent;
+  white-space: nowrap;
 }
 .ghost-link:hover { color: var(--green); border-color: var(--line); background: var(--panel); }
+
+/* navegação entre as duas telas: precisa saltar aos olhos, não ser link fino */
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 17px;
+  border-radius: var(--radius);
+  border: 1px solid var(--green-dim);
+  background: rgba(0, 230, 118, .1);
+  color: var(--green);
+  font-family: var(--font-head);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all .13s;
+}
+.nav-btn:hover {
+  background: var(--green);
+  border-color: var(--green);
+  color: #04140b;
+  box-shadow: 0 0 20px -5px var(--glow);
+}
+.nav-btn .ico { font-size: 15px; line-height: 1; }
+
+@media (max-width: 620px) {
+  .nav-btn { padding: 7px 12px; font-size: 13px; letter-spacing: .06em; }
+  .nav-btn .rotulo-longo { display: none; }
+}
 
 .aviso-rascunho {
   display: flex;
