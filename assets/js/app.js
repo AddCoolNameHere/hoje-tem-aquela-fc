@@ -540,16 +540,18 @@ function abrirModal(playerId, origem) {
     ? `${atual.archetype} · ${atual.position || 'sem posição'}`
     : (atual.position || 'sem arquétipo');
 
-  // as cartas que esse jogador tem, agrupadas pelo arquétipo
+  // as cartas do jogador, agrupadas pelo arquétipo OFICIAL (uma variante como
+  // THIEF cai no RECYCLER, que é o arquétipo de verdade)
   const cartasPorArq = {};
   p.variants.forEach(v => {
-    const chave = arquetipoBase(v.archetype);
+    const oficial = arquetipoDaCarta(v.archetype);
+    const chave = oficial ? oficial.nome : arquetipoBase(v.archetype);
     (cartasPorArq[chave] = cartasPorArq[chave] || []).push(v);
   });
 
-  // arquétipos que ele tem mas que ainda não estão no catálogo entram em "outros"
+  // arquétipo que a carta traz mas que não está no catálogo entra em "outros"
   const soltos = Object.keys(cartasPorArq).filter(k => k && !ARQUETIPO_POR_NOME[k]);
-  const setores = [...SETORES, ...(soltos.length ? [{ id: 'outros', nome: 'Sem setor definido' }] : [])];
+  const setores = [...SETORES, ...(soltos.length ? [{ id: 'outros', nome: 'Fora do catálogo' }] : [])];
 
   $('#modalArquetipos').innerHTML = setores.map(s => {
     const doSetor = ARQUETIPOS.filter(a => a.setor === s.id);
@@ -575,16 +577,26 @@ function abrirModal(playerId, origem) {
             const ativo  = tem && cartas.some(c => c.vid === atual.vid);
             const alvo   = tem ? (cartas.find(c => c.vid === atual.vid) || carta) : null;
 
+            // se a carta traz um nome diferente do oficial (ex.: THIEF no RECYCLER), mostra os dois
+            const escrito = tem ? arquetipoBase(carta.archetype) : '';
+            const legenda = tem
+              ? [escrito && escrito !== a.nome ? escrito : '', carta.position || a.posicao].filter(Boolean).join(' · ')
+              : 'sem carta';
+
+            const dica = a.desc
+              ? `${a.desc}${a.playstyles?.length ? '\n\nPlaystyles: ' + a.playstyles.join(', ') : ''}`
+              : '';
+
             return `
               <button class="arq${ativo ? ' is-active' : ''}" ${tem ? `data-vid="${alvo.vid}"` : 'disabled'}
-                      title="${tem ? 'Usar esta carta' : 'Ainda não tem carta deste arquétipo'}">
+                      title="${dica.replace(/"/g, '&quot;')}">
                 <span class="icone">${
                   a.icone ? `<img class="simbolo" src="${a.icone}" alt="">`
                   : (tem && carta.card ? `<img src="${carta.card}" alt="">` : a.nome.slice(0, 3))
                 }</span>
                 <span class="txt">
                   <span class="n">${a.nome}</span>
-                  <span class="d">${tem ? (carta.position || a.posicao || '—') : 'sem carta'}</span>
+                  <span class="d">${legenda}</span>
                 </span>
                 ${tem && carta.rating != null ? `<span class="ovr">${carta.rating}</span>` : ''}
               </button>`;
