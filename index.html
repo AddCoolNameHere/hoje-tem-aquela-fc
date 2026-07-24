@@ -56,7 +56,10 @@
         <div><span style="color:var(--gold)">■</span> Fora de posição (dá pra jogar)</div>
         <div><span style="color:#ff7b6b">■</span> Totalmente fora de posição</div>
         <hr style="border:none;border-top:1px solid var(--line-soft);margin:10px 0">
-        <div style="color:var(--txt-faint)">Arraste a carta pro campo, ou clique no jogador e depois no slot. Arraste entre slots pra trocar.</div>
+        <div style="color:var(--txt-faint)">
+          <strong style="color:var(--txt-dim)">Arraste</strong> a carta pro campo, ou entre slots pra trocar.<br>
+          <strong style="color:var(--txt-dim)">Clique</strong> num jogador pra trocar o arquétipo dele.
+        </div>
       </div>
     </section>
   </div>
@@ -149,7 +152,27 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- seletor de arquétipo: abre ao clicar num jogador -->
+<div class="modal-bg" id="modalBg" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalNome">
+    <div class="modal-head">
+      <div class="modal-carta" id="modalCarta"></div>
+      <div class="modal-quem">
+        <h3 id="modalNome">—</h3>
+        <span class="gt" id="modalTag"></span>
+        <span class="atual" id="modalAtual"></span>
+      </div>
+      <button class="modal-x" id="modalFechar" title="Fechar">×</button>
+    </div>
+
+    <div class="modal-body" id="modalArquetipos"></div>
+
+    <div class="modal-pe" id="modalAcoes"></div>
+  </div>
+</div>
+
 <script src="assets/js/formations.js"></script>
+<script src="assets/js/archetypes.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
 </html>

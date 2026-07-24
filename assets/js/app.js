@@ -520,10 +520,148 @@ function setupDnD() {
   });
 }
 
+/* ---------------------------------------------------- seletor de arquétipo */
+
+let modalPlayerId = null;   // de quem é o modal aberto
+
+/** Abre o seletor para um jogador. `origem` diz de onde veio o clique. */
+function abrirModal(playerId, origem) {
+  const p = getPlayer(playerId);
+  if (!p) return;
+
+  modalPlayerId = playerId;
+  const atual = activeVariant(p);
+  const onde  = findPlayerSlot(playerId);
+
+  $('#modalCarta').innerHTML = cardHTML(atual);
+  $('#modalNome').textContent = p.name;
+  $('#modalTag').textContent  = p.gamertag;
+  $('#modalAtual').textContent = atual.archetype
+    ? `${atual.archetype} · ${atual.position || 'sem posição'}`
+    : (atual.position || 'sem arquétipo');
+
+  // as cartas que esse jogador tem, agrupadas pelo arquétipo
+  const cartasPorArq = {};
+  p.variants.forEach(v => {
+    const chave = arquetipoBase(v.archetype);
+    (cartasPorArq[chave] = cartasPorArq[chave] || []).push(v);
+  });
+
+  // arquétipos que ele tem mas que ainda não estão no catálogo entram em "outros"
+  const soltos = Object.keys(cartasPorArq).filter(k => k && !ARQUETIPO_POR_NOME[k]);
+  const setores = [...SETORES, ...(soltos.length ? [{ id: 'outros', nome: 'Sem setor definido' }] : [])];
+
+  $('#modalArquetipos').innerHTML = setores.map(s => {
+    const doSetor = ARQUETIPOS.filter(a => a.setor === s.id);
+    const extras  = s.id === 'outros' ? soltos.map(n => ({ nome: n, posicao: '', icone: null })) : [];
+    const lista   = [...doSetor, ...extras];
+
+    if (!lista.length) {
+      return `
+        <div class="setor">
+          <div class="setor-nome">${s.nome}</div>
+          <div class="modal-vazio" style="padding:10px">Nenhum arquétipo deste setor cadastrado ainda.</div>
+        </div>`;
+    }
+
+    return `
+      <div class="setor">
+        <div class="setor-nome">${s.nome}</div>
+        <div class="arq-grid">
+          ${lista.map(a => {
+            const cartas = cartasPorArq[a.nome] || [];
+            const tem    = cartas.length > 0;
+            const carta  = cartas[0];
+            const ativo  = tem && cartas.some(c => c.vid === atual.vid);
+            const alvo   = tem ? (cartas.find(c => c.vid === atual.vid) || carta) : null;
+
+            return `
+              <button class="arq${ativo ? ' is-active' : ''}" ${tem ? `data-vid="${alvo.vid}"` : 'disabled'}
+                      title="${tem ? 'Usar esta carta' : 'Ainda não tem carta deste arquétipo'}">
+                <span class="icone">${
+                  a.icone ? `<img class="simbolo" src="${a.icone}" alt="">`
+                  : (tem && carta.card ? `<img src="${carta.card}" alt="">` : a.nome.slice(0, 3))
+                }</span>
+                <span class="txt">
+                  <span class="n">${a.nome}</span>
+                  <span class="d">${tem ? (carta.position || a.posicao || '—') : 'sem carta'}</span>
+                </span>
+                ${tem && carta.rating != null ? `<span class="ovr">${carta.rating}</span>` : ''}
+              </button>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('') || '<div class="modal-vazio">Nenhum arquétipo cadastrado ainda.</div>';
+
+  // ações mudam conforme o jogador já está escalado ou não
+  $('#modalAcoes').innerHTML = onde
+    ? `<button class="btn" data-acao="trocar">Trocar de lugar</button>
+       <button class="btn btn-danger" data-acao="tirar">Tirar do time</button>`
+    : `<button class="btn btn-primary" data-acao="escalar">Escalar no campo</button>`;
+
+  $('#modalBg').hidden = false;
+  document.body.style.overflow = 'hidden';
+  void origem;
+}
+
+function fecharModal() {
+  $('#modalBg').hidden = true;
+  document.body.style.overflow = '';
+  modalPlayerId = null;
+}
+
+function setupModal() {
+  $('#modalFechar').addEventListener('click', fecharModal);
+
+  $('#modalBg').addEventListener('click', e => {
+    if (e.target === $('#modalBg')) fecharModal();   // clicar fora fecha
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !$('#modalBg').hidden) fecharModal();
+  });
+
+  $('#modalArquetipos').addEventListener('click', e => {
+    const btn = e.target.closest('.arq[data-vid]');
+    if (!btn || !modalPlayerId) return;
+    setActiveVariant(modalPlayerId, btn.dataset.vid);
+    abrirModal(modalPlayerId);                        // redesenha com o novo ativo
+    toast('Arquétipo trocado');
+  });
+
+  $('#modalAcoes').addEventListener('click', e => {
+    const btn = e.target.closest('[data-acao]');
+    if (!btn || !modalPlayerId) return;
+    const p = getPlayer(modalPlayerId);
+    const onde = findPlayerSlot(modalPlayerId);
+
+    if (btn.dataset.acao === 'tirar' && onde) {
+      clearSlot(onde.zone, onde.index);
+      fecharModal();
+      return;
+    }
+    if (btn.dataset.acao === 'escalar') {
+      selected = { src: 'roster', vid: activeVariant(p).vid };
+      fecharModal();
+      renderAll();
+      toast('Agora toque na posição do campo');
+      return;
+    }
+    if (btn.dataset.acao === 'trocar' && onde) {
+      selected = { src: 'slot', zone: onde.zone, index: onde.index };
+      fecharModal();
+      renderAll();
+      toast('Agora toque em quem vai trocar de lugar');
+    }
+  });
+}
+
 /* ------------------------------------------------------- clique/toque (mobile) */
 
 function setupClickPlacement() {
   document.addEventListener('click', e => {
+    if (e.target.closest('.modal-bg')) return;   // o modal cuida dos cliques dele
+
     // remover jogador
     const rm = e.target.closest('.slot-remove');
     if (rm) {
@@ -533,7 +671,7 @@ function setupClickPlacement() {
       return;
     }
 
-    // trocar a carta do jogador (não seleciona a linha)
+    // atalho de carta no elenco — não abre o seletor
     const pill = e.target.closest('.variant-pill');
     if (pill) {
       e.stopPropagation();
@@ -541,44 +679,33 @@ function setupClickPlacement() {
       return;
     }
 
-    // selecionar no elenco
+    const slot = e.target.closest('.slot');
+
+    // tem alguém esperando destino? então este clique conclui a jogada
+    if (slot && selected) {
+      const zone = slot.dataset.zone, index = +slot.dataset.index;
+      if (selected.src === 'roster') placeCard(selected.vid, zone, index);
+      else swapSlots({ zone: selected.zone, index: selected.index }, { zone, index });
+      selected = null;
+      return;
+    }
+
+    // clicar num jogador (sem arrastar) abre o seletor de arquétipo
     const item = e.target.closest('.roster-item');
     if (item) {
-      const vid = item.dataset.vid;
-      selected = (selected && selected.src === 'roster' && selected.vid === vid)
-        ? null
-        : { src: 'roster', vid };
-      renderRoster();
-      renderPitch();
-      renderBench();
+      const v = getVariant(item.dataset.vid);
+      if (v) abrirModal(v.playerId, 'elenco');
       return;
     }
-
-    // clicar num slot
-    const slot = e.target.closest('.slot');
     if (slot) {
-      const zone = slot.dataset.zone, index = +slot.dataset.index;
-      const occupied = zoneArray(zone)[index];
-
-      if (selected && selected.src === 'roster') {
-        placeCard(selected.vid, zone, index);
-        selected = null;
-        return;
-      }
-      if (selected && selected.src === 'slot') {
-        swapSlots({ zone: selected.zone, index: selected.index }, { zone, index });
-        selected = null;
-        return;
-      }
-      if (occupied) {
-        selected = { src: 'slot', zone, index };
-        renderPitch(); renderBench(); renderRoster();
-      }
+      const vid = zoneArray(slot.dataset.zone)[+slot.dataset.index];
+      const v = vid ? getVariant(vid) : null;
+      if (v) abrirModal(v.playerId, 'campo');
       return;
     }
 
-    // clique fora limpa a seleção
-    if (selected) { selected = null; renderPitch(); renderBench(); renderRoster(); }
+    // clique fora limpa a seleção pendente
+    if (selected) { selected = null; renderAll(); }
   });
 }
 
@@ -753,6 +880,7 @@ function setupControls() {
 
   setupDnD();
   setupClickPlacement();
+  setupModal();
   setupControls();
   renderAll();
   renderSaved();
