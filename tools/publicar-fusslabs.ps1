@@ -89,8 +89,9 @@ if (Test-Path $fnOrigem) {
     if (Test-Path $fnDestino) { Remove-Item $fnDestino -Recurse -Force }
     Copy-Item $fnOrigem $fnDestino -Recurse
     Copy-Item (Join-Path $ORIGEM 'cloudflare\_routes.json') $RepoSite -Force
+    Copy-Item (Join-Path $ORIGEM 'cloudflare\_headers')     $RepoSite -Force
     $nf = (Get-ChildItem $fnDestino -Recurse -File).Count
-    Write-Host "  /api                 $nf function(s) + _routes.json" -ForegroundColor Gray
+    Write-Host "  /api                 $nf function(s) + _routes.json + _headers" -ForegroundColor Gray
 }
 
 # ------------------------------------------------------------------- git
