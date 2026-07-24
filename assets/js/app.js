@@ -282,7 +282,7 @@ function renderPitch() {
     pitch.appendChild(el);
   });
 
-  $('#formationTag').textContent = state.formation;
+  $('#formationTag .ft-valor').textContent = state.formation;
   const filled = state.slots.filter(Boolean).length;
   $('#squadSubtitle').textContent = `Time titular · ${filled} de 11 escalados`;
 }
@@ -641,6 +641,42 @@ function fecharModal() {
   document.body.style.overflow = '';
   modalPlayerId = null;
   modalVaga = null;
+  modalFormacoes = false;
+}
+
+/* ------------------------------------------------- escolher a formação */
+
+let modalFormacoes = false;
+
+/** Lista as 29 formações num modal — o caminho óbvio pra quem está no celular. */
+function abrirFormacoes() {
+  modalPlayerId = null;
+  modalVaga = null;
+  modalFormacoes = true;
+
+  const escalados = state.slots.filter(Boolean).length;
+
+  $('#modalCarta').innerHTML = `<div class="vaga-pos">${state.formation.split('-')[0]}</div>`;
+  $('#modalNome').textContent  = 'Formação';
+  $('#modalTag').textContent   = `${FORMATION_ORDER.length} disponíveis no FC 26`;
+  $('#modalAtual').textContent = `Agora: ${state.formation}` +
+    (escalados ? ` · ${escalados} escalados continuam onde estão` : '');
+
+  $('#modalArquetipos').innerHTML = `
+    <div class="form-modal-grid">
+      ${FORMATION_ORDER.map(f => `
+        <button class="formation-btn${f === state.formation ? ' is-active' : ''}"
+                data-formacao="${f}">${f}</button>`).join('')}
+    </div>`;
+
+  $('#modalAcoes').innerHTML = '<button class="btn" data-acao="fechar">Fechar</button>';
+
+  $('#modalBg').hidden = false;
+  document.body.style.overflow = 'hidden';
+
+  // já abre mostrando a formação atual
+  const ativa = $('#modalArquetipos .is-active');
+  if (ativa) ativa.scrollIntoView({ block: 'center' });
 }
 
 /* -------------------------------------------------- sugestões para uma vaga */
@@ -721,6 +757,15 @@ function setupModal() {
   });
 
   $('#modalArquetipos').addEventListener('click', e => {
+    // escolher a formação
+    const form = e.target.closest('[data-formacao]');
+    if (form) {
+      setFormation(form.dataset.formacao);
+      fecharModal();
+      toast(`Formação ${form.dataset.formacao}`);
+      return;
+    }
+
     // escolher alguém para a vaga
     const sug = e.target.closest('.sug[data-vid]');
     if (sug && modalVaga) {
@@ -952,6 +997,8 @@ function setupControls() {
     const btn = e.target.closest('.formation-btn');
     if (btn) setFormation(btn.dataset.formation);
   });
+
+  $('#formationTag').addEventListener('click', abrirFormacoes);
 
   $('#rosterSearch').addEventListener('input', renderRoster);
 

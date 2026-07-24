@@ -263,16 +263,45 @@ input, select { font-family: inherit; }
 }
 .stage-head .sub { font-size: 12.5px; color: var(--txt-dim); margin-top: 2px; }
 
+/* o número da formação é um botão: clicou, abre a lista das 29 */
 .formation-tag {
-  font-family: var(--font-head);
-  font-size: 15px;
-  letter-spacing: .1em;
-  color: var(--green);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 15px;
+  border-radius: 999px;
   border: 1px solid var(--green-dim);
   background: rgba(0, 230, 118, .08);
-  border-radius: 999px;
-  padding: 5px 15px;
+  transition: all .13s;
 }
+.formation-tag:hover {
+  background: rgba(0, 230, 118, .18);
+  border-color: var(--green);
+  box-shadow: 0 0 18px -6px var(--glow);
+}
+.formation-tag .ft-rotulo {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  color: var(--txt-faint);
+}
+.formation-tag .ft-valor {
+  font-family: var(--font-head);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--green);
+}
+.formation-tag .ft-seta { font-size: 10px; color: var(--green-dim); }
+.formation-tag:hover .ft-seta { color: var(--green); }
+
+/* grade das formações dentro do modal */
+.form-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 7px;
+}
+.form-modal-grid .formation-btn { padding: 11px 4px; font-size: 15px; }
 
 .pitch-wrap {
   position: relative;
@@ -1056,9 +1085,20 @@ input, select { font-family: inherit; }
     grid-template-columns: minmax(0, 1fr);
     padding: 12px;
   }
-  .col-left  { order: 2; }
-  .stage     { order: 1; }
-  .col-right { order: 3; }
+
+  /* No celular a ordem importa: campo, depois a FORMAÇÃO, só então o elenco.
+     Assim dá pra escolher o esquema antes de sair arrastando todo mundo.
+     'display: contents' solta os painéis da coluna para poder ordenar um a um. */
+  .col-right { display: contents; }
+  .stage                    { order: 1; }
+  .col-right > .panel:nth-of-type(1) { order: 2; }   /* formação  */
+  .col-left                 { order: 3; }            /* elenco    */
+  .col-right > .panel:nth-of-type(2) { order: 4; }   /* escalação */
+  .col-right > .panel:nth-of-type(3) { order: 5; }   /* salvas    */
+
+  /* com display:contents o espaçamento passa a ser o gap do grid */
+  .col-right > .panel + .panel { margin-top: 0; }
+
   .roster-list { max-height: none; }
   .formation-grid { grid-template-columns: repeat(3, 1fr); max-height: none; }
 }
