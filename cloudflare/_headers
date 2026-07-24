@@ -1,23 +1,42 @@
 # Cache do montador.
 #
-# O padrão do Pages é max-age=14400 (4h). Com isso, quem já tinha aberto o site
-# continuava rodando o JS antigo por horas depois de uma atualização.
-# Aqui o navegador passa a revalidar sempre: quando nada mudou vem um 304,
-# que é barato; quando mudou, chega na hora.
+# O padrão do Pages é max-age=14400 (4h) para arquivo estático. Com isso, quem
+# já tinha aberto o site continuava rodando o JS antigo por horas depois de uma
+# atualização. Aqui o navegador passa a revalidar sempre: quando nada mudou vem
+# um 304, que é barato; quando mudou, chega na hora.
 #
-# Só as rotas do /realtismo são afetadas — o resto do fusslabs.com segue igual.
-
-/realtismo/assets/*
-  Cache-Control: public, max-age=0, must-revalidate
-
-/realtismo/data/*
-  Cache-Control: no-store
-
-/realtismo/cards/*
-  Cache-Control: public, max-age=0, must-revalidate
+# Um "*" do Pages não atravessa subdiretório, então cada nível precisa da
+# própria regra — foi por isso que /realtismo/assets/* sozinho não pegou o
+# assets/js/app.js.
+#
+# Só as rotas do /realtismo são afetadas; o resto do fusslabs.com segue igual.
 
 /realtismo/
   Cache-Control: public, max-age=0, must-revalidate
 
 /realtismo-adm/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/realtismo/data/*
+  Cache-Control: no-store
+
+/realtismo/assets/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/realtismo/assets/css/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/realtismo/assets/js/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/realtismo/assets/img/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/realtismo/assets/img/arq/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/realtismo/cards/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/realtismo/cards/*/*
   Cache-Control: public, max-age=0, must-revalidate

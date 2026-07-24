@@ -69,15 +69,15 @@ const POSITION_RELATED = {
   // meio — o miolo é o mais intercambiável do time
   CDM: ['CM','CB','CAM'],
   CM:  ['CDM','CAM','LM','RM'],
-  CAM: ['CM','CF','LM','RM','LW','RW','ST'],
-  LM:  ['LW','LWB','LB','CM','CAM'],
-  RM:  ['RW','RWB','RB','CM','CAM'],
+  CAM: ['CM','CDM','CF','ST','LM','RM','LW','RW'],
+  LM:  ['LW','RW','RM','LWB','LB','CM','CAM'],
+  RM:  ['RW','LW','LM','RWB','RB','CM','CAM'],
 
-  // frente
-  LW:  ['LM','CAM','ST','CF','LWB'],
-  RW:  ['RM','CAM','ST','CF','RWB'],
-  ST:  ['CF','LW','RW','CAM'],
-  CF:  ['ST','CAM','LW','RW'],
-  LF:  ['LW','ST','CAM'],
-  RF:  ['RW','ST','CAM'],
+  // frente — ponta joga por dentro e centroavante recua pro CAM
+  LW:  ['LM','RM','RW','CAM','ST','CF','LWB'],
+  RW:  ['RM','LM','LW','CAM','ST','CF','RWB'],
+  ST:  ['CF','LW','RW','LM','RM','CAM'],
+  CF:  ['ST','CAM','LW','RW','LM','RM'],
+  LF:  ['LW','LM','ST','CAM'],
+  RF:  ['RW','RM','ST','CAM'],
 };
