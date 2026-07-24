@@ -1,43 +1,17 @@
-# Cache do montador.
+# O cache dos assets NÃO é resolvido aqui.
 #
-# O padrão do Pages é max-age=14400 (4h) para arquivo estático. Com isso, quem
-# já tinha aberto o site continuava rodando o JS antigo por horas depois de uma
-# atualização. Aqui o navegador passa a revalidar sempre: quando nada mudou vem
-# um 304, que é barato; quando mudou, chega na hora.
+# Testado em produção: o Pages ignora este arquivo para as rotas do /realtismo.
+# Coloquei um cabeçalho de teste (X-Regra-Aplicada) numa das regras e ele não
+# apareceu na resposta, então a regra nem chega a casar. O que se vê são os
+# padrões do próprio Pages: max-age=0 no HTML e max-age=14400 nos assets.
 #
-# Um "*" do Pages não atravessa subdiretório, então cada nível precisa da
-# própria regra — foi por isso que /realtismo/assets/* sozinho não pegou o
-# assets/js/app.js.
+# A solução está em tools/publicar-fusslabs.ps1: cada css/js sai com
+# ?v=<hash do arquivo> na tag. Mudou o conteúdo, muda a URL, e o navegador
+# busca de novo na hora — sem depender de cabeçalho nenhum. De quebra, o
+# cache longo passa a ajudar em vez de atrapalhar.
 #
-# Só as rotas do /realtismo são afetadas; o resto do fusslabs.com segue igual.
-
-/realtismo/
-  Cache-Control: public, max-age=0, must-revalidate
-
-/realtismo-adm/
-  Cache-Control: public, max-age=0, must-revalidate
+# A regra abaixo fica só por garantia; se um dia o Pages passar a respeitar
+# este arquivo, ela evita servir elenco velho para quem cair no fallback.
 
 /realtismo/data/*
   Cache-Control: no-store
-
-/realtismo/assets/*
-  Cache-Control: public, max-age=0, must-revalidate
-
-/realtismo/assets/css/*
-  Cache-Control: public, max-age=0, must-revalidate
-
-/realtismo/assets/js/*
-  Cache-Control: public, max-age=0, must-revalidate
-  X-Regra-Aplicada: assets-js
-
-/realtismo/assets/img/*
-  Cache-Control: public, max-age=0, must-revalidate
-
-/realtismo/assets/img/arq/*
-  Cache-Control: public, max-age=0, must-revalidate
-
-/realtismo/cards/*
-  Cache-Control: public, max-age=0, must-revalidate
-
-/realtismo/cards/*/*
-  Cache-Control: public, max-age=0, must-revalidate
