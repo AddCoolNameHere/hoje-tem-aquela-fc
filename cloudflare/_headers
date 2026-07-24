@@ -28,6 +28,7 @@
 
 /realtismo/assets/js/*
   Cache-Control: public, max-age=0, must-revalidate
+  X-Regra-Aplicada: assets-js
 
 /realtismo/assets/img/*
   Cache-Control: public, max-age=0, must-revalidate

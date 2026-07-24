@@ -54,14 +54,43 @@ Get-ChildItem (Join-Path $destino 'cards') -Recurse -Include *.bat -File | Remov
 Get-ChildItem (Join-Path $destino 'cards') -Recurse -Directory |
     Where-Object { $_.Name -eq 'prints' } | Remove-Item -Recurse -Force
 
+# ------------------------------------------------------- versão nos assets
+# O Pages não deixa o _headers baixar o Cache-Control de asset (fica em 4h),
+# então a URL é que carrega a versão: mudou o arquivo, muda o ?v=, e o
+# navegador é obrigado a buscar de novo. O cache longo vira vantagem.
+
+$ASSETS = @(
+  'assets/css/styles.css',
+  'assets/js/formations.js',
+  'assets/js/archetypes.js',
+  'assets/js/app.js'
+)
+
+$versao = @{}
+foreach ($rel in $ASSETS) {
+  $arquivo = Join-Path $destino ($rel -replace '/', '\')
+  if (Test-Path $arquivo) {
+    $versao[$rel] = (Get-FileHash $arquivo -Algorithm MD5).Hash.Substring(0, 8).ToLower()
+  }
+}
+
+function Set-VersaoNosAssets($html) {
+  foreach ($rel in $versao.Keys) {
+    $html = $html.Replace("`"$rel`"", "`"$rel`?v=$($versao[$rel])`"")
+  }
+  return $html
+}
+
 # o link do admin passa a apontar para a outra pasta
 $idx = Join-Path $destino 'index.html'
 $html = [System.IO.File]::ReadAllText($idx, [System.Text.Encoding]::UTF8)
 $html = $html.Replace('href="admin.html"', "href=`"/$SUBADM/`"")
+$html = Set-VersaoNosAssets $html
 [System.IO.File]::WriteAllText($idx, $html, $utf8)
 
 $n = (Get-ChildItem $destino -Recurse -File).Count
 Write-Host "  /$SUB            $n arquivos" -ForegroundColor Gray
+Write-Host ("  versao dos assets    " + (($versao.GetEnumerator() | ForEach-Object { ($_.Key -split '/')[-1] + '=' + $_.Value }) -join '  ')) -ForegroundColor DarkGray
 
 # -------------------------------------------------------------- /realtismo-adm
 
@@ -76,6 +105,7 @@ $adm = [System.IO.File]::ReadAllText((Join-Path $ORIGEM 'admin.html'), [System.T
 if ($adm -notmatch '<base ') {
     $adm = $adm.Replace('<meta charset="utf-8">', "<meta charset=`"utf-8`">`r`n<base href=`"/$SUB/`">")
 }
+$adm = Set-VersaoNosAssets $adm
 [System.IO.File]::WriteAllText((Join-Path $destinoAdm 'index.html'), $adm, $utf8)
 Write-Host "  /$SUBADM        1 arquivo (usa os assets de /$SUB)" -ForegroundColor Gray
 
