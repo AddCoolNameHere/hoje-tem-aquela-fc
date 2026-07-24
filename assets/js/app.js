@@ -952,6 +952,7 @@ function setupControls() {
 
   $('#btnSave').addEventListener('click', saveSquad);
   $('#btnShare').addEventListener('click', shareLink);
+  $('#btnImagem').addEventListener('click', e => baixarImagemEscalacao(e.currentTarget));
 
   $('#btnClear').addEventListener('click', () => {
     if (!confirm('Limpar todos os jogadores do campo e das reservas?')) return;

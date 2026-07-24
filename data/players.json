@@ -81,6 +81,12 @@
       ]
     },
     {
+      "id": "joaogrillo16", "name": "Grillo", "gamertag": "JoaoGrillo16",
+      "cards": [
+        { "id": "joaogrillo16-creator", "archetype": "CREATOR", "position": "CAM", "rating": 40, "card": "cards/joaogrillo16/joaogrillo16.jpg" }
+      ]
+    },
+    {
       "id": "perkystorm73532", "name": "Vini", "gamertag": "PerkyStorm73532",
       "cards": [
         { "id": "perkystorm73532-maestro", "archetype": "MAESTRO", "position": "CM", "rating": 55, "card": "cards/perkystorm73532/perkystorm73532.jpg" }

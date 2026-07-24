@@ -44,7 +44,8 @@ $destino = Join-Path $RepoSite $SUB
 if (Test-Path $destino) { Remove-Item $destino -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $destino | Out-Null
 
-Copy-Item (Join-Path $ORIGEM 'index.html') $destino
+Copy-Item (Join-Path $ORIGEM 'index.html')        $destino
+Copy-Item (Join-Path $ORIGEM 'estatisticas.html') $destino
 Copy-Item (Join-Path $ORIGEM 'assets') $destino -Recurse
 Copy-Item (Join-Path $ORIGEM 'data')   $destino -Recurse
 Copy-Item (Join-Path $ORIGEM 'cards')  $destino -Recurse
@@ -61,9 +62,12 @@ Get-ChildItem (Join-Path $destino 'cards') -Recurse -Directory |
 
 $ASSETS = @(
   'assets/css/styles.css',
+  'assets/css/stats.css',
   'assets/js/formations.js',
   'assets/js/archetypes.js',
-  'assets/js/app.js'
+  'assets/js/export.js',
+  'assets/js/app.js',
+  'assets/js/stats.js'
 )
 
 $versao = @{}
@@ -87,6 +91,13 @@ $html = [System.IO.File]::ReadAllText($idx, [System.Text.Encoding]::UTF8)
 $html = $html.Replace('href="admin.html"', "href=`"/$SUBADM/`"")
 $html = Set-VersaoNosAssets $html
 [System.IO.File]::WriteAllText($idx, $html, $utf8)
+
+# a página de estatísticas também leva a versão nos assets
+$est = Join-Path $destino 'estatisticas.html'
+if (Test-Path $est) {
+    $htmlEst = [System.IO.File]::ReadAllText($est, [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllText($est, (Set-VersaoNosAssets $htmlEst), $utf8)
+}
 
 $n = (Get-ChildItem $destino -Recurse -File).Count
 Write-Host "  /$SUB            $n arquivos" -ForegroundColor Gray

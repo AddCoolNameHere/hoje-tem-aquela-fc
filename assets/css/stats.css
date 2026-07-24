@@ -1,0 +1,235 @@
+/* ==========================================================================
+   Página de estatísticas — usa as variáveis de styles.css
+   ========================================================================== */
+
+.stats-wrap { max-width: 1280px; margin: 0 auto; padding: 22px 24px 70px; }
+
+.stats-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.stats-head h1 { font-size: 30px; text-transform: uppercase; letter-spacing: .04em; }
+.stats-head .sub { font-size: 12.5px; color: var(--txt-dim); margin-top: 3px; }
+
+.abas {
+  display: flex;
+  gap: 5px;
+  padding: 5px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.aba {
+  padding: 8px 22px;
+  border-radius: 999px;
+  border: none;
+  background: none;
+  color: var(--txt-dim);
+  font-family: var(--font-head);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  transition: all .13s;
+}
+.aba:hover { color: var(--txt); }
+.aba.is-active { background: var(--green); color: #04140b; font-weight: 700; }
+
+.painel-aba[hidden] { display: none; }
+
+/* --------------------------------------------------------------- jogador */
+
+.cartas-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+  gap: 13px;
+}
+
+.carta-btn {
+  position: relative;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  overflow: hidden;
+  transition: all .14s;
+}
+.carta-btn:hover { border-color: var(--green-dim); transform: translateY(-3px); }
+.carta-btn.is-active {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(0, 230, 118, .13);
+}
+.carta-btn img { width: 100%; display: block; aspect-ratio: 720 / 995; object-fit: contain; }
+.carta-btn .cb-nome {
+  padding: 8px 8px 9px;
+  border-top: 1px solid var(--line-soft);
+  background: var(--bg-2);
+}
+.carta-btn .cb-nome .n {
+  font-family: var(--font-head);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--txt);
+  letter-spacing: .03em;
+}
+.carta-btn .cb-nome .a {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--txt-faint);
+  margin-top: 2px;
+}
+.carta-btn .cb-lvl {
+  position: absolute;
+  top: 7px; right: 7px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(4, 12, 8, .85);
+  border: 1px solid var(--green-dim);
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* submenu com os stats do jogador escolhido */
+.detalhe {
+  margin-top: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--panel), var(--bg-2));
+  overflow: hidden;
+  animation: sobeDet .16s ease;
+}
+.detalhe[hidden] { display: none; }
+@keyframes sobeDet { from { opacity: .5; transform: translateY(8px) } to { opacity: 1; transform: none } }
+
+.det-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.det-head img { width: 62px; border-radius: 7px; }
+.det-quem { flex: 1; min-width: 0; }
+.det-quem h2 { font-size: 25px; text-transform: uppercase; letter-spacing: .03em; }
+.det-quem .gt { font-size: 11px; color: var(--txt-faint); letter-spacing: .1em; }
+.det-quem .meta { font-size: 12px; color: var(--green); font-weight: 600; margin-top: 4px; }
+.det-fechar {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--txt-dim);
+  font-size: 17px;
+  line-height: 1;
+  padding: 0;
+}
+.det-fechar:hover { border-color: var(--green-dim); color: var(--txt); }
+
+.det-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(146px, 1fr));
+  gap: 1px;
+  background: var(--line-soft);
+}
+.det-item { background: var(--bg-2); padding: 14px 16px; }
+.det-item .k {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: .15em;
+  color: var(--txt-faint);
+}
+.det-item .v {
+  font-family: var(--font-head);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--txt);
+  margin-top: 3px;
+  line-height: 1;
+}
+.det-item.destaque .v { color: var(--green); }
+.det-item .por-jogo { font-size: 10.5px; color: var(--txt-faint); margin-top: 4px; }
+
+.sem-stats {
+  padding: 22px 18px;
+  font-size: 12.5px;
+  color: var(--txt-faint);
+  text-align: center;
+  line-height: 1.7;
+}
+
+/* ----------------------------------------------------------------- lista */
+
+.tabela-rolagem {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--panel), var(--bg-2));
+}
+
+.tabela { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
+
+.tabela th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 12px 11px;
+  background: #0d1a13;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-head);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt-dim);
+  text-align: right;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+.tabela th:first-child { text-align: left; }
+.tabela th:hover { color: var(--green); }
+.tabela th.ordenada { color: var(--green); }
+.tabela th .seta { font-size: 9px; margin-left: 4px; opacity: .8; }
+
+.tabela td {
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--line-soft);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--txt-dim);
+  white-space: nowrap;
+}
+.tabela td:first-child { text-align: left; }
+.tabela tbody tr:hover td { background: rgba(0, 230, 118, .045); color: var(--txt); }
+.tabela tbody tr:last-child td { border-bottom: none; }
+
+.cel-jogador { display: flex; align-items: center; gap: 9px; }
+.cel-jogador img {
+  width: 26px; height: 36px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: #08170e;
+  flex: none;
+}
+.cel-jogador .n { font-weight: 600; color: var(--txt); }
+.cel-jogador .g { font-size: 10px; color: var(--txt-faint); }
+
+.tabela td.melhor { color: var(--green); font-weight: 700; }
+
+.dica { font-size: 11.5px; color: var(--txt-faint); margin: 12px 2px 0; }
+
+@media (max-width: 620px) {
+  .stats-wrap { padding: 16px 13px 60px; }
+  .stats-head h1 { font-size: 23px; }
+  .aba { padding: 7px 15px; font-size: 12.5px; }
+  .cartas-grade { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+  .det-quem h2 { font-size: 20px; }
+  .det-item .v { font-size: 25px; }
+}

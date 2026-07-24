@@ -10,3 +10,6 @@ cards/*/prints/
 
 # backup que o recortador faz antes de mexer no elenco
 *.bak
+
+# prints de estatisticas — a leitura ja virou data/stats.json
+Stats/

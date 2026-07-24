@@ -1,0 +1,29 @@
+{
+  "_comentario": "Estatísticas lidas dos prints da tela Club Squad (pasta Stats/ no repositório). 'position' e 'height' são o que o próprio jogo mostra; 'archetype' é o arquétipo que estava ativo no momento do print.",
+  "_colunas": {
+    "appearances": "Jogos",
+    "goals": "Gols",
+    "assists": "Assistências",
+    "cleanSheets": "Jogos sem sofrer gol",
+    "motm": "Melhor da partida",
+    "redCards": "Cartões vermelhos",
+    "passCompletion": "Acerto de passe (%)",
+    "shotsOnTarget": "Chutes no gol (%)"
+  },
+  "atualizadoEm": "2026-07-24",
+  "stats": [
+    { "id": "lucasfms00",      "gamertag": "Lucasfms00",      "position": "ST", "height": "6'0\"",  "archetype": "Finisher",   "appearances": 142, "goals": 170, "assists": 57,  "cleanSheets": 1, "motm": 27, "redCards": 2, "passCompletion": 77, "shotsOnTarget": 30 },
+    { "id": "danilocrf1",      "gamertag": "DaniloCRF1",      "position": "CB", "height": "5'11\"", "archetype": "Progressor", "appearances": 166, "goals": 67,  "assists": 130, "cleanSheets": 0, "motm": 61, "redCards": 0, "passCompletion": 77, "shotsOnTarget": 29 },
+    { "id": "rafsvasc",        "gamertag": "rafsvasc",        "position": "CM", "height": "6'1\"",  "archetype": "Recycler",   "appearances": 146, "goals": 91,  "assists": 63,  "cleanSheets": 1, "motm": 7,  "redCards": 1, "passCompletion": 83, "shotsOnTarget": 22 },
+    { "id": "duduitaborahy",   "gamertag": "DuduItaborahy",   "position": "CM", "height": "6'0\"",  "archetype": "Spark",      "appearances": 122, "goals": 45,  "assists": 45,  "cleanSheets": 2, "motm": 5,  "redCards": 6, "passCompletion": 76, "shotsOnTarget": 25 },
+    { "id": "boliclifer",      "gamertag": "boliclifer",      "position": "CM", "height": "5'11\"", "archetype": "Spark",      "appearances": 109, "goals": 14,  "assists": 33,  "cleanSheets": 1, "motm": 3,  "redCards": 2, "passCompletion": 79, "shotsOnTarget": 17 },
+    { "id": "caiogmelo",       "gamertag": "CaioGMelo",       "position": "CM", "height": "5'11\"", "archetype": "Recycler",   "appearances": 92,  "goals": 16,  "assists": 15,  "cleanSheets": 1, "motm": 16, "redCards": 0, "passCompletion": 89, "shotsOnTarget": 24 },
+    { "id": "alfacebilingue",  "gamertag": "AlfaceBilingue",  "position": "ST", "height": "6'0\"",  "archetype": "Magician",   "appearances": 75,  "goals": 10,  "assists": 16,  "cleanSheets": 1, "motm": 1,  "redCards": 4, "passCompletion": 76, "shotsOnTarget": 20 },
+    { "id": "lucasvvcq",       "gamertag": "LucasVvcq_",      "position": "CB", "height": "6'2\"",  "archetype": "Boss",       "appearances": 43,  "goals": 15,  "assists": 22,  "cleanSheets": 5, "motm": 5,  "redCards": 0, "passCompletion": 82, "shotsOnTarget": 30 },
+    { "id": "llnoronha",       "gamertag": "LLNoronha",       "position": "CM", "height": "5'10\"", "archetype": "Creator",    "appearances": 34,  "goals": 4,   "assists": 4,   "cleanSheets": 0, "motm": 1,  "redCards": 0, "passCompletion": 77, "shotsOnTarget": 10 },
+    { "id": "marblesquire834", "gamertag": "MarbleSquire834", "position": "CM", "height": "6'0\"",  "archetype": "Recycler",   "appearances": 31,  "goals": 6,   "assists": 6,   "cleanSheets": 0, "motm": 3,  "redCards": 0, "passCompletion": 79, "shotsOnTarget": 27 },
+    { "id": "capelloko",       "gamertag": "Capelloko",       "position": "CM", "height": "5'9\"",  "archetype": "Spark",      "appearances": 29,  "goals": 4,   "assists": 4,   "cleanSheets": 0, "motm": 0,  "redCards": 0, "passCompletion": 83, "shotsOnTarget": 30 },
+    { "id": "perkystorm73532", "gamertag": "PerkyStorm73532", "position": "CM", "height": "5'10\"", "archetype": "Maestro",    "appearances": 12,  "goals": 0,   "assists": 0,   "cleanSheets": 2, "motm": 0,  "redCards": 0, "passCompletion": 83, "shotsOnTarget": 0 },
+    { "id": "joaogrillo16",    "gamertag": "JoaoGrillo16",    "position": "CM", "height": "5'10\"", "archetype": "Creator",    "appearances": 8,   "goals": 0,   "assists": 2,   "cleanSheets": 0, "motm": 0,  "redCards": 0, "passCompletion": 80, "shotsOnTarget": 0 }
+  ]
+}

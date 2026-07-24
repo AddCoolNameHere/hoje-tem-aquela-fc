@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estatísticas — HOJE TEM AQUELA F.C.</title>
+<meta name="theme-color" content="#050a07">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23050a07'/><text x='50' y='68' font-size='54' font-family='sans-serif' font-weight='bold' fill='%2300e676' text-anchor='middle'>H</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="assets/css/stats.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="crest" id="crest">HT</div>
+  <div class="brand">
+    <span class="name">HOJE TEM <em>AQUELA</em> F.C.</span>
+    <span class="tag">Pro Clubs · Estatísticas</span>
+  </div>
+
+  <div class="topbar-spacer"></div>
+
+  <div class="division-badge" id="divisionBadge">
+    <span class="num" id="divNum">—</span>
+    <span class="meta">
+      <span class="k">Divisão atual</span>
+      <span class="v" id="divLabel">Carregando…</span>
+    </span>
+  </div>
+
+  <a class="ghost-link" href="index.html">← Escalação</a>
+</header>
+
+<main class="stats-wrap">
+
+  <div class="stats-head">
+    <div>
+      <h1>Estatísticas</h1>
+      <div class="sub" id="statsSub">Carregando…</div>
+    </div>
+    <div class="abas" role="tablist">
+      <button class="aba is-active" data-aba="jogador" role="tab">Jogador</button>
+      <button class="aba" data-aba="lista" role="tab">Lista</button>
+    </div>
+  </div>
+
+  <!-- ------------------------------------------------------------ JOGADOR -->
+  <section class="painel-aba" id="abaJogador">
+    <div class="cartas-grade" id="cartasGrade"></div>
+    <div class="detalhe" id="detalhe" hidden></div>
+  </section>
+
+  <!-- -------------------------------------------------------------- LISTA -->
+  <section class="painel-aba" id="abaLista" hidden>
+    <div class="tabela-rolagem">
+      <table class="tabela" id="tabela">
+        <thead id="tabelaHead"></thead>
+        <tbody id="tabelaBody"></tbody>
+      </table>
+    </div>
+    <p class="dica">Clique no título de qualquer coluna para ordenar. Clique de novo para inverter.</p>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="assets/js/archetypes.js"></script>
+<script src="assets/js/stats.js"></script>
+</body>
+</html>
