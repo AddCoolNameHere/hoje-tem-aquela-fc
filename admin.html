@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — HOJE TEM AQUELA F.C.</title>
+<meta name="theme-color" content="#050a07">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23050a07'/><text x='50' y='68' font-size='54' font-family='sans-serif' font-weight='bold' fill='%2300e676' text-anchor='middle'>H</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+<style>
+  .admin-wrap { max-width: 720px; margin: 0 auto; padding: 26px 20px 70px; }
+  .note {
+    background: rgba(245,197,66,.07);
+    border: 1px solid rgba(245,197,66,.28);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #e0cf9a;
+    margin-bottom: 18px;
+  }
+  .div-picker { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+  .div-opt {
+    padding: 13px 4px;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--txt-dim);
+    font-family: var(--font-head);
+    font-size: 19px;
+    font-weight: 700;
+  }
+  .div-opt:hover { border-color: var(--green-dim); color: var(--txt); }
+  .div-opt.is-active { background: var(--green); border-color: var(--green); color: #04140b; }
+  .preview {
+    display: flex; align-items: center; gap: 14px;
+    padding: 15px; border-radius: var(--radius);
+    background: #060f0a; border: 1px solid var(--line); margin-top: 14px;
+  }
+  pre.json {
+    background: #060f0a; border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 13px; font-size: 11.5px; color: var(--green); overflow-x: auto; margin: 0;
+    max-height: 340px; overflow-y: auto;
+    font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  }
+  .p-row {
+    display: grid;
+    grid-template-columns: 46px minmax(0,1fr) 108px 62px;
+    gap: 8px; align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .p-row:last-child { border-bottom: none; }
+  .p-row img {
+    width: 46px; height: 64px; object-fit: contain;
+    border-radius: 5px; background: #08170e;
+  }
+  .p-row input, .p-row select {
+    width: 100%; padding: 7px 9px; border-radius: 7px;
+    border: 1px solid var(--line); background: #060f0a; color: var(--txt);
+    font-size: 12.5px; outline: none;
+  }
+  .p-row input:focus, .p-row select:focus { border-color: var(--green-dim); }
+  .p-row .tag { font-size: 10px; color: var(--txt-faint); letter-spacing: .1em; margin-top: 3px; }
+  .p-head {
+    display: grid; grid-template-columns: 46px minmax(0,1fr) 108px 62px; gap: 8px;
+    font-size: 9.5px; text-transform: uppercase; letter-spacing: .16em;
+    color: var(--txt-faint); padding-bottom: 7px; border-bottom: 1px solid var(--line);
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="crest">HT</div>
+  <div class="brand">
+    <span class="name">HOJE TEM <em>AQUELA</em> F.C.</span>
+    <span class="tag">Painel de administração</span>
+  </div>
+  <div class="topbar-spacer"></div>
+  <a class="ghost-link" href="index.html">← Voltar pro campo</a>
+</header>
+
+<main class="admin-wrap">
+
+  <div class="note">
+    <strong>Como funciona por enquanto:</strong> a divisão que você escolher aqui vale na hora
+    para <em>este navegador</em>. Para valer pra todo mundo, copie o JSON gerado abaixo e
+    salve em <code style="color:var(--green)">data/club.json</code> no repositório.
+  </div>
+
+  <section class="panel">
+    <div class="panel-head"><h3>Divisão atual</h3></div>
+    <div class="panel-body">
+      <div class="div-picker" id="divPicker"></div>
+
+      <div class="field-row" style="margin-top:16px">
+        <label for="divLabelInput">Texto que aparece no site</label>
+        <input type="text" id="divLabelInput" placeholder="Ex.: Divisão 4 · Elite">
+      </div>
+
+      <div class="preview">
+        <span class="division-badge">
+          <span class="num" id="pvNum">—</span>
+          <span class="meta">
+            <span class="k">Divisão atual</span>
+            <span class="v" id="pvLabel">—</span>
+          </span>
+        </span>
+        <span style="font-size:11px;color:var(--txt-faint)">Prévia do topo do site</span>
+      </div>
+
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-primary" id="btnApply">Aplicar neste navegador</button>
+        <button class="btn" id="btnReset">Voltar ao valor do repositório</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>data/club.json</h3>
+      <button class="btn" id="btnCopy" style="padding:5px 10px;font-size:10.5px">Copiar</button>
+    </div>
+    <div class="panel-body"><pre class="json" id="jsonOut"></pre></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>Elenco</h3>
+      <span class="count" id="playerCount">0</span>
+    </div>
+    <div class="panel-body">
+      <p style="font-size:12px;color:var(--txt-faint);margin:0 0 14px;line-height:1.6">
+        Troque o nome, a posição e o overall de cada jogador. As posições foram deduzidas
+        do arquétipo da carta — confira se estão certas.
+      </p>
+      <div id="playerRows"></div>
+      <div class="btn-row" style="margin-top:14px">
+        <button class="btn btn-primary" id="btnApplyPlayers">Aplicar neste navegador</button>
+        <button class="btn" id="btnResetPlayers">Descartar alterações</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>data/players.json</h3>
+      <button class="btn" id="btnCopyPlayers" style="padding:5px 10px;font-size:10.5px">Copiar</button>
+    </div>
+    <div class="panel-body"><pre class="json" id="playersJson"></pre></div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const LS_CLUB = 'htafc:club';
+const $ = s => document.querySelector(s);
+
+let base = { name: 'HOJE TEM AQUELA F.C.', shortName: 'HTA', division: 10, divisionLabel: 'Divisão 10', crest: null };
+let current = { ...base };
+
+function toast(msg) {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function render() {
+  $('#divPicker').innerHTML = Array.from({ length: 10 }, (_, i) => i + 1)
+    .map(n => `<button class="div-opt${n === current.division ? ' is-active' : ''}" data-div="${n}">${n}</button>`)
+    .join('');
+  $('#divLabelInput').value = current.divisionLabel || '';
+  $('#pvNum').textContent   = current.division ?? '—';
+  $('#pvLabel').textContent = current.divisionLabel || '—';
+  $('#jsonOut').textContent = JSON.stringify({
+    ...current,
+    updatedAt: new Date().toISOString().slice(0, 10),
+  }, null, 2);
+}
+
+$('#divPicker').addEventListener('click', e => {
+  const b = e.target.closest('[data-div]');
+  if (!b) return;
+  current.division = +b.dataset.div;
+  current.divisionLabel = `Divisão ${current.division}`;
+  render();
+});
+
+$('#divLabelInput').addEventListener('input', e => {
+  current.divisionLabel = e.target.value;
+  $('#pvLabel').textContent = e.target.value || '—';
+  $('#jsonOut').textContent = JSON.stringify({ ...current, updatedAt: new Date().toISOString().slice(0, 10) }, null, 2);
+});
+
+$('#btnApply').addEventListener('click', () => {
+  localStorage.setItem(LS_CLUB, JSON.stringify(current));
+  toast('Divisão aplicada neste navegador');
+});
+
+$('#btnReset').addEventListener('click', () => {
+  localStorage.removeItem(LS_CLUB);
+  current = { ...base };
+  render();
+  toast('Voltou ao valor do repositório');
+});
+
+$('#btnCopy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($('#jsonOut').textContent); toast('JSON copiado'); }
+  catch { toast('Não consegui copiar — selecione manualmente'); }
+});
+
+/* ------------------------------------------------------------------- elenco */
+
+const LS_PLAYERS = 'htafc:players';
+const POSITIONS = ['GK','CB','LB','RB','LWB','RWB','CDM','CM','CAM','LM','RM','LW','RW','CF','ST'];
+
+let basePlayers = [];   // o que está em data/players.json
+let editPlayers = [];   // o que está sendo editado aqui
+
+function renderPlayers() {
+  $('#playerCount').textContent = editPlayers.length;
+
+  $('#playerRows').innerHTML =
+    `<div class="p-head"><span></span><span>Nome</span><span>Posição</span><span>Overall</span></div>` +
+    editPlayers.map((p, i) => `
+      <div class="p-row">
+        ${p.card ? `<img src="${p.card}" alt="">` : '<span></span>'}
+        <span>
+          <input type="text" data-i="${i}" data-k="name" value="${(p.name || '').replace(/"/g, '&quot;')}">
+          <span class="tag">${p.gamertag || p.id}${p.archetype ? ' · ' + p.archetype : ''}</span>
+        </span>
+        <input type="text" data-i="${i}" data-k="position" value="${p.position || ''}" list="posList" placeholder="ex.: CM/CAM">
+        <input type="number" data-i="${i}" data-k="rating" value="${p.rating ?? ''}" min="0" max="120">
+      </div>`).join('') +
+    `<datalist id="posList">${POSITIONS.map(p => `<option value="${p}">`).join('')}</datalist>`;
+
+  $('#playersJson').textContent = JSON.stringify({ players: editPlayers }, null, 2);
+}
+
+$('#playerRows').addEventListener('input', e => {
+  const el = e.target;
+  if (!el.dataset.k) return;
+  const p = editPlayers[+el.dataset.i];
+  if (el.dataset.k === 'rating') p.rating = el.value === '' ? null : +el.value;
+  else p[el.dataset.k] = el.value;
+  $('#playersJson').textContent = JSON.stringify({ players: editPlayers }, null, 2);
+});
+
+$('#btnApplyPlayers').addEventListener('click', () => {
+  localStorage.setItem(LS_PLAYERS, JSON.stringify(editPlayers));
+  toast('Elenco aplicado neste navegador');
+});
+
+$('#btnResetPlayers').addEventListener('click', () => {
+  localStorage.removeItem(LS_PLAYERS);
+  editPlayers = basePlayers.map(p => ({ ...p }));
+  renderPlayers();
+  toast('Voltou ao valor do repositório');
+});
+
+$('#btnCopyPlayers').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($('#playersJson').textContent); toast('JSON do elenco copiado'); }
+  catch { toast('Não consegui copiar — selecione manualmente'); }
+});
+
+/* --------------------------------------------------------------------- boot */
+
+(async function init() {
+  try {
+    const res = await fetch('data/club.json', { cache: 'no-store' });
+    if (res.ok) base = { ...base, ...await res.json() };
+  } catch (e) { /* usa os valores padrão */ }
+
+  current = { ...base };
+  try {
+    const saved = JSON.parse(localStorage.getItem(LS_CLUB) || 'null');
+    if (saved) current = { ...current, ...saved };
+  } catch (e) { /* ignora */ }
+
+  render();
+
+  try {
+    const res = await fetch('data/players.json', { cache: 'no-store' });
+    if (res.ok) basePlayers = (await res.json()).players || [];
+  } catch (e) { /* elenco vazio */ }
+
+  editPlayers = basePlayers.map(p => ({ ...p }));
+  try {
+    const saved = JSON.parse(localStorage.getItem(LS_PLAYERS) || 'null');
+    if (Array.isArray(saved)) {
+      // mantém a ordem do repositório e aplica por cima o que foi editado
+      editPlayers = basePlayers.map(p => ({ ...p, ...(saved.find(s => s.id === p.id) || {}) }));
+    }
+  } catch (e) { /* ignora */ }
+
+  renderPlayers();
+})();
+</script>
+</body>
+</html>

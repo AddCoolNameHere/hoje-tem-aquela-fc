@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HOJE TEM AQUELA F.C. — Montador de Formações</title>
+<meta name="description" content="Montador de escalações do HOJE TEM AQUELA F.C. para Pro Clubs.">
+<meta name="theme-color" content="#050a07">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23050a07'/><text x='50' y='68' font-size='54' font-family='sans-serif' font-weight='bold' fill='%2300e676' text-anchor='middle'>H</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="crest" id="crest">HT</div>
+  <div class="brand">
+    <span class="name">HOJE TEM <em>AQUELA</em> F.C.</span>
+    <span class="tag">Pro Clubs · Montador de Formações</span>
+  </div>
+
+  <div class="topbar-spacer"></div>
+
+  <div class="division-badge" id="divisionBadge" title="Divisão atual do clube">
+    <span class="num" id="divNum">—</span>
+    <span class="meta">
+      <span class="k">Divisão atual</span>
+      <span class="v" id="divLabel">Carregando…</span>
+    </span>
+  </div>
+
+  <a class="ghost-link" href="admin.html">Admin</a>
+</header>
+
+<main class="layout">
+
+  <!-- ============================================================ ESQUERDA -->
+  <div class="col-left">
+    <section class="panel">
+      <div class="panel-head">
+        <h3>Elenco</h3>
+        <span class="count" id="rosterCount">0</span>
+      </div>
+      <div class="panel-body">
+        <input type="search" class="roster-search" id="rosterSearch" placeholder="Buscar jogador…" autocomplete="off">
+        <div class="roster-list" id="rosterList"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h3>Legenda</h3></div>
+      <div class="panel-body" style="font-size:11.5px;line-height:1.9;color:var(--txt-dim)">
+        <div><span style="color:var(--green)">■</span> Posição natural</div>
+        <div><span style="color:var(--gold)">■</span> Fora de posição (dá pra jogar)</div>
+        <div><span style="color:#ff7b6b">■</span> Totalmente fora de posição</div>
+        <hr style="border:none;border-top:1px solid var(--line-soft);margin:10px 0">
+        <div style="color:var(--txt-faint)">Arraste a carta pro campo, ou clique no jogador e depois no slot. Arraste entre slots pra trocar.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ================================================================ CAMPO -->
+  <div class="stage">
+    <div class="stage-head">
+      <div>
+        <h1>Escalação</h1>
+        <div class="sub" id="squadSubtitle">Time titular · 11 jogadores</div>
+      </div>
+      <span class="formation-tag" id="formationTag">4-3-3</span>
+    </div>
+
+    <div class="pitch-wrap" id="pitch">
+      <div class="pitch-turf"></div>
+      <!-- marcações já desenhadas em trapézio, acompanhando a perspectiva do gramado -->
+      <svg class="pitch-lines" viewBox="0 0 900 650" preserveAspectRatio="none" aria-hidden="true">
+        <g fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="round">
+          <path d="M126 0 L774 0 L900 650 L0 650 Z"/>
+          <line x1="68" y1="299" x2="832" y2="299"/>
+          <ellipse cx="450" cy="299" rx="99" ry="49"/>
+          <!-- nossa área -->
+          <path d="M204 520 L696 520 L711 650 L189 650 Z"/>
+          <path d="M336 598 L564 598 L567 650 L333 650 Z"/>
+          <path d="M340 520 Q450 440 560 520"/>
+          <!-- área adversária -->
+          <path d="M262 0 L638 0 L649 101 L251 101 Z"/>
+          <path d="M366 0 L534 0 L537 46 L364 46 Z"/>
+          <path d="M361 101 Q450 170 539 101"/>
+        </g>
+        <g fill="#ffffff">
+          <circle cx="450" cy="299" r="6"/>
+          <circle cx="450" cy="566" r="5"/>
+        </g>
+      </svg>
+      <div class="pitch-watermark">HOJE TEM<br>AQUELA F.C.</div>
+      <!-- slots injetados por JS -->
+    </div>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h3>Reservas</h3>
+        <span class="count" id="benchCount">0 / 7</span>
+      </div>
+      <div class="panel-body">
+        <div class="bench" id="bench"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================== DIREITA -->
+  <div class="col-right">
+    <section class="panel">
+      <div class="panel-head"><h3>Formação</h3></div>
+      <div class="panel-body">
+        <div class="formation-grid" id="formationGrid"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h3>Escalação</h3></div>
+      <div class="panel-body">
+        <div class="field-row">
+          <label for="squadName">Nome da escalação</label>
+          <input type="text" id="squadName" placeholder="Ex.: Titular contra Div 3" autocomplete="off">
+        </div>
+        <div class="btn-row" style="margin-bottom:8px">
+          <button class="btn btn-primary" id="btnSave">Salvar</button>
+          <button class="btn" id="btnShare">Copiar link</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-danger btn-block" id="btnClear">Limpar campo</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h3>Salvas</h3>
+        <span class="count" id="savedCount">0</span>
+      </div>
+      <div class="panel-body">
+        <div class="squad-list" id="savedList"></div>
+      </div>
+    </section>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="assets/js/formations.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
