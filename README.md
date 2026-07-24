@@ -1,5 +1,7 @@
 # HOJE TEM AQUELA F.C. — Montador de Formações
 
+**No ar em:** https://addcoolnamehere.github.io/hoje-tem-aquela-fc/
+
 Site do time para montar as escalações do Pro Clubs. Todas as **29 formações do EA FC 26**
 estão disponíveis e qualquer carta pode ir em **qualquer posição**.
 
@@ -30,20 +32,32 @@ data/players.json     elenco
 
 ## Cadastrando um jogador
 
-1. Coloque o PNG recortado (fundo transparente) em `cards/`.
-2. Adicione a entrada em `data/players.json`:
+As cartas em `cards/` são recortes dos prints do menu **Club Squad** do jogo. Num print
+4K (3840x2160) a moldura da carta fica exatamente em `x=249, y=290, 720x995` — é só
+recortar essa região e salvar como `cards/<gamertag>.jpg`.
+
+Depois adicione a entrada em `data/players.json`:
 
 ```json
-{ "id": "p01", "name": "LUCAS", "position": "CAM", "rating": 87, "card": "cards/lucas.png" }
+{ "id": "boliclifer", "name": "boliclifer", "gamertag": "boliclifer",
+  "archetype": "JOKER", "position": "CAM", "rating": 86, "card": "cards/boliclifer.jpg" }
 ```
 
 `position` aceita mais de uma separada por `/` (ex.: `"LB/LWB"`).
 Se `card` for `null`, o site desenha sozinho uma carta verde e preta com as iniciais.
 
-## Mudando a divisão
+> As posições atuais foram **deduzidas** do arquétipo e dos atributos de cada carta —
+> o print do Club Squad não mostra a posição. Confira em `admin.html`.
 
-Abra `admin.html`, escolha a divisão e clique em **Aplicar** — vale na hora para aquele
-navegador. Para valer para o time todo, copie o JSON gerado e salve em `data/club.json`.
+## Admin
+
+`admin.html` tem duas coisas:
+
+- **Divisão atual** — escolha o número e clique em **Aplicar**; vale na hora naquele navegador.
+- **Elenco** — troque nome, posição e overall de cada jogador.
+
+Para valer para o time todo, copie o JSON gerado e salve em `data/club.json` /
+`data/players.json` no repositório.
 
 ## Rodando local
 
