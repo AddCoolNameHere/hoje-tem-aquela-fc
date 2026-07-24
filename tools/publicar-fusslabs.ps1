@@ -113,9 +113,17 @@ if (-not $Enviar) {
     return
 }
 
-git -C $RepoSite add -A
-git -C $RepoSite commit -q -m "Publica o montador do HOJE TEM AQUELA F.C. em /$SUB e /$SUBADM"
-git -C $RepoSite push -q origin main
+# o git escreve avisos (CRLF etc.) na saída de erro; sem isso o PowerShell aborta
+$ErrorActionPreference = 'Continue'
+
+git -C $RepoSite add -A 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) { throw "git add falhou" }
+
+git -C $RepoSite commit -q -m "Publica o montador do HOJE TEM AQUELA F.C. em /$SUB e /$SUBADM" 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) { throw "git commit falhou" }
+
+git -C $RepoSite push -q origin main 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) { throw "git push falhou" }
 
 Write-Host ''
 Write-Host '  Publicado. O Cloudflare Pages leva cerca de um minuto para trocar.' -ForegroundColor Green
