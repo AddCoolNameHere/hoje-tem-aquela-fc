@@ -8,6 +8,14 @@ const LS_BLOBS   = 'htafc:cardblobs';
 const LS_SQUADS  = 'htafc:squads';
 const LS_STATE   = 'htafc:state';
 
+/* Os dados que o admin publica ficam no Cloudflare, junto do fusslabs.com.
+   Tenta primeiro a API do próprio site; se não existir (GitHub Pages), usa a
+   do fusslabs.com, que é onde mora a versão que vale para todo mundo. */
+const API_ABS = 'https://fusslabs.com/api';
+let API = '/api';
+
+let publicadoEm = null;   // quando o admin publicou pela última vez
+
 const BENCH_SIZE = 7;
 
 const state = {
@@ -79,24 +87,50 @@ async function loadJSON(path, fallback) {
   }
 }
 
+/** O que o admin publicou. Null se ninguém publicou ainda ou se a API não responde. */
+async function loadShared() {
+  for (const base of [API, API_ABS]) {
+    try {
+      const res = await fetch(`${base}/dados`, { cache: 'no-store' });
+      if (!res.ok) continue;
+      const d = await res.json();        // se vier HTML de 404, estoura e tenta a próxima
+      API = base;
+      return (d && !d.vazio) ? d : null;
+    } catch (e) { /* tenta a próxima */ }
+  }
+  console.warn('Dados compartilhados indisponíveis — usando os arquivos do repositório.');
+  return null;
+}
+
 async function loadData() {
+  // base: o que está commitado no repositório
   const clubData = await loadJSON('data/club.json', null);
   if (clubData) club = { ...club, ...clubData };
-
-  // o admin sobrescreve a divisão localmente até virar commit no repositório
-  try {
-    const override = JSON.parse(localStorage.getItem(LS_CLUB) || 'null');
-    if (override) club = { ...club, ...override };
-  } catch (e) { /* ignora override corrompido */ }
 
   const roster = await loadJSON('data/players.json', { players: [] });
   let raw = roster.players || [];
 
-  // o admin sobrescreve o elenco inteiro (nomes, posições, variantes) até virar commit
-  try {
-    const edits = JSON.parse(localStorage.getItem(LS_PLAYERS) || 'null');
-    if (Array.isArray(edits) && edits.length) raw = edits;
-  } catch (e) { /* ignora edição corrompida */ }
+  const compartilhado = await loadShared();
+
+  if (compartilhado) {
+    // o que o admin publicou vale para todo mundo e ganha do repositório
+    if (compartilhado.club) club = { ...club, ...compartilhado.club };
+    if (Array.isArray(compartilhado.players) && compartilhado.players.length) {
+      raw = compartilhado.players;
+    }
+    publicadoEm = compartilhado.atualizadoEm || null;
+  } else {
+    // nada publicado ainda: usa o rascunho local do admin, se existir
+    try {
+      const override = JSON.parse(localStorage.getItem(LS_CLUB) || 'null');
+      if (override) club = { ...club, ...override };
+    } catch (e) { /* ignora override corrompido */ }
+
+    try {
+      const edits = JSON.parse(localStorage.getItem(LS_PLAYERS) || 'null');
+      if (Array.isArray(edits) && edits.length) raw = edits;
+    } catch (e) { /* ignora edição corrompida */ }
+  }
 
   buildRoster(raw);
 }
@@ -165,6 +199,10 @@ function renderClub() {
   $('#divLabel').textContent = club.divisionLabel || (club.division ? `Divisão ${club.division}` : 'Não definida');
   if (club.crest) $('#crest').innerHTML = `<img src="${club.crest}" alt="Escudo">`;
   document.title = `${club.name} — Montador de Formações`;
+
+  $('#divisionBadge').title = publicadoEm
+    ? `Publicado pelo admin em ${new Date(publicadoEm).toLocaleString('pt-BR')}`
+    : 'Divisão atual do clube';
 }
 
 /* ---------------------------------------------------------------- render carta */

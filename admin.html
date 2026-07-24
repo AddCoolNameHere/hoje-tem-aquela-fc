@@ -128,11 +128,28 @@
 
 <main class="admin-wrap">
 
-  <div class="note">
-    <strong>Como funciona por enquanto:</strong> a divisão que você escolher aqui vale na hora
-    para <em>este navegador</em>. Para valer pra todo mundo, copie o JSON gerado abaixo e
-    salve em <code style="color:var(--green)">data/club.json</code> no repositório.
-  </div>
+  <section class="panel" style="margin-bottom:18px">
+    <div class="panel-head">
+      <h3>Publicar</h3>
+      <span class="count" id="estadoPub">verificando…</span>
+    </div>
+    <div class="panel-body">
+      <p style="font-size:12px;color:var(--txt-faint);margin:0 0 12px;line-height:1.6">
+        Mexa à vontade nas seções abaixo — nada sai daqui até você publicar.
+        Ao publicar, a divisão, o elenco e as cartas novas passam a valer
+        <strong>para todo mundo que abrir o site</strong>, na hora.
+      </p>
+      <div class="field-row">
+        <label for="senha">Senha do admin</label>
+        <input type="password" id="senha" placeholder="senha" autocomplete="current-password" style="width:100%">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnPublicar">Publicar pra todo mundo</button>
+        <button class="btn" id="btnRecarregar">Descartar e recarregar</button>
+      </div>
+      <p id="msgPub" style="font-size:12px;margin:12px 0 0;line-height:1.6;color:var(--txt-faint)"></p>
+    </div>
+  </section>
 
   <section class="panel">
     <div class="panel-head"><h3>Divisão atual</h3></div>
@@ -155,9 +172,12 @@
         <span style="font-size:11px;color:var(--txt-faint)">Prévia do topo do site</span>
       </div>
 
-      <div class="btn-row" style="margin-top:16px">
-        <button class="btn btn-primary" id="btnApply">Aplicar neste navegador</button>
-        <button class="btn" id="btnReset">Voltar ao valor do repositório</button>
+      <p style="font-size:11.5px;color:var(--txt-faint);margin:14px 0 0;line-height:1.6">
+        Use <strong>Publicar pra todo mundo</strong> lá em cima para valer para o time.
+        O botão abaixo é só um teste no seu navegador.
+      </p>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn" id="btnApply">Testar só neste navegador</button>
       </div>
     </div>
   </section>
@@ -183,8 +203,7 @@
       </p>
       <div id="playerRows"></div>
       <div class="btn-row" style="margin-top:14px">
-        <button class="btn btn-primary" id="btnApplyPlayers">Aplicar neste navegador</button>
-        <button class="btn" id="btnResetPlayers">Descartar alterações</button>
+        <button class="btn" id="btnApplyPlayers">Testar só neste navegador</button>
       </div>
     </div>
   </section>
@@ -277,6 +296,25 @@
 const LS_CLUB = 'htafc:club';
 const $ = s => document.querySelector(s);
 
+/* A API mora junto do fusslabs.com. Tenta a do próprio site primeiro; se não
+   existir (GitHub Pages), cai na do fusslabs.com. */
+const API_ABS = 'https://fusslabs.com/api';
+let API = '/api';
+
+/** Descobre qual endereço da API responde e guarda em API. */
+async function acharAPI() {
+  for (const base of [API, API_ABS]) {
+    try {
+      const res = await fetch(`${base}/dados`, { cache: 'no-store' });
+      if (!res.ok) continue;
+      const d = await res.json();
+      API = base;
+      return d;
+    } catch (e) { /* tenta a próxima */ }
+  }
+  return null;
+}
+
 let base = { name: 'HOJE TEM AQUELA F.C.', shortName: 'HTA', division: 10, divisionLabel: 'Divisão 10', crest: null };
 let current = { ...base };
 
@@ -320,17 +358,120 @@ $('#btnApply').addEventListener('click', () => {
   toast('Divisão aplicada neste navegador');
 });
 
-$('#btnReset').addEventListener('click', () => {
+$('#btnRecarregar').addEventListener('click', () => {
+  if (!confirm('Descartar tudo que você mexeu aqui e recarregar o que está publicado?')) return;
   localStorage.removeItem(LS_CLUB);
-  current = { ...base };
-  render();
-  toast('Voltou ao valor do repositório');
+  localStorage.removeItem(LS_PLAYERS);
+  localStorage.removeItem(LS_BLOBS);
+  location.reload();
 });
 
 $('#btnCopy').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText($('#jsonOut').textContent); toast('JSON copiado'); }
   catch { toast('Não consegui copiar — selecione manualmente'); }
 });
+
+/* ------------------------------------------------------------------ publicar */
+
+const SS_SENHA = 'htafc:senha';
+let publicado = null;   // o que está no ar agora
+
+function msg(texto, cor = 'var(--txt-faint)') {
+  $('#msgPub').textContent = texto;
+  $('#msgPub').style.color = cor;
+}
+
+/** Data URL -> bytes, para mandar o JPEG cru no PUT. */
+function bytesDe(dataURL) {
+  const b64 = dataURL.split(',')[1];
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return arr;
+}
+
+async function publicar() {
+  const senha = $('#senha').value.trim();
+  if (!senha) { msg('Preencha a senha do admin.', '#ff8f7d'); $('#senha').focus(); return; }
+
+  const btn = $('#btnPublicar');
+  btn.disabled = true;
+  const rotulo = btn.textContent;
+
+  try {
+    // 1) sobe as cartas que hoje só existem neste navegador
+    const blobs = getBlobs();
+    const pendentes = [];
+    editPlayers.forEach(p => p.cards.forEach(c => {
+      if (c.card && blobs[c.card]) pendentes.push({ carta: c, dataURL: blobs[c.card] });
+    }));
+
+    for (let i = 0; i < pendentes.length; i++) {
+      const { carta, dataURL } = pendentes[i];
+      btn.textContent = `Enviando carta ${i + 1}/${pendentes.length}…`;
+
+      // id único a cada envio, assim a imagem pode ficar em cache para sempre
+      const id = `${slug(carta.id) || 'carta'}-${Date.now().toString(36)}${i}`;
+      const res = await fetch(`${API}/carta/${id}`, {
+        method: 'PUT',
+        headers: { 'X-Senha': senha, 'Content-Type': 'image/jpeg' },
+        body: bytesDe(dataURL),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).erro || `carta ${id}: HTTP ${res.status}`);
+
+      const antigo = carta.card;
+      carta.card = `${API_ABS}/carta/${id}`;
+
+      // a prévia local já não é necessária
+      const b = getBlobs(); delete b[antigo];
+      try { localStorage.setItem(LS_BLOBS, JSON.stringify(b)); } catch (e) { /* ignora */ }
+    }
+
+    // 2) publica divisão + elenco
+    btn.textContent = 'Publicando…';
+    const res = await fetch(`${API}/dados`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Senha': senha },
+      body: JSON.stringify({
+        club: { ...current, updatedAt: new Date().toISOString().slice(0, 10) },
+        players: editPlayers,
+      }),
+    });
+    const corpo = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(corpo.erro || `HTTP ${res.status}`);
+
+    sessionStorage.setItem(SS_SENHA, senha);
+    localStorage.removeItem(LS_CLUB);
+    localStorage.removeItem(LS_PLAYERS);
+
+    publicado = { club: current, players: editPlayers, atualizadoEm: corpo.atualizadoEm };
+    renderPlayers();
+    marcarEstado();
+    msg(`No ar. ${corpo.jogadores} jogadores publicados${pendentes.length ? ` e ${pendentes.length} carta(s) enviada(s)` : ''}. Quem abrir o site já vê.`, 'var(--green)');
+    toast('Publicado pra todo mundo');
+
+  } catch (e) {
+    msg(`Não deu pra publicar: ${e.message}`, '#ff8f7d');
+    toast('Falhou ao publicar');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = rotulo;
+  }
+}
+
+$('#btnPublicar').addEventListener('click', publicar);
+$('#senha').addEventListener('keydown', e => { if (e.key === 'Enter') publicar(); });
+
+function marcarEstado() {
+  const el = $('#estadoPub');
+  if (!publicado) {
+    el.textContent = 'nada publicado ainda';
+    el.style.color = 'var(--txt-faint)';
+  } else {
+    el.textContent = 'no ar desde ' + new Date(publicado.atualizadoEm).toLocaleString('pt-BR');
+    el.style.color = 'var(--green)';
+  }
+}
 
 /* ------------------------------------------------------------------- elenco */
 
@@ -425,15 +566,6 @@ $('#playerRows').addEventListener('click', e => {
 $('#btnApplyPlayers').addEventListener('click', () => {
   localStorage.setItem(LS_PLAYERS, JSON.stringify(editPlayers));
   toast('Elenco aplicado neste navegador');
-});
-
-$('#btnResetPlayers').addEventListener('click', () => {
-  if (!confirm('Descartar todas as alterações, inclusive as cartas adicionadas aqui?')) return;
-  localStorage.removeItem(LS_PLAYERS);
-  localStorage.removeItem(LS_BLOBS);
-  editPlayers = normalize(basePlayers);
-  renderPlayers();
-  toast('Voltou ao valor do repositório');
 });
 
 $('#btnCopyPlayers').addEventListener('click', async () => {
@@ -581,11 +713,33 @@ $('#btnAddCard').addEventListener('click', () => {
 /* --------------------------------------------------------------------- boot */
 
 (async function init() {
+  $('#senha').value = sessionStorage.getItem(SS_SENHA) || '';
+
+  // base: o que está commitado no repositório
   try {
     const res = await fetch('data/club.json', { cache: 'no-store' });
     if (res.ok) base = { ...base, ...await res.json() };
   } catch (e) { /* usa os valores padrão */ }
 
+  try {
+    const res = await fetch('data/players.json', { cache: 'no-store' });
+    if (res.ok) basePlayers = (await res.json()).players || [];
+  } catch (e) { /* elenco vazio */ }
+
+  // por cima: o que já está publicado, que é o que o time está vendo
+  const d = await acharAPI();
+  if (!d) {
+    msg('Não consegui falar com a API — dá pra editar e testar local, mas não publicar.', 'var(--gold)');
+  } else if (d.vazio) {
+    if (d.aviso) msg(`A API respondeu, mas ainda falta ligar o KV: ${d.aviso}`, 'var(--gold)');
+  } else {
+    publicado = d;
+    if (d.club) base = { ...base, ...d.club };
+    if (Array.isArray(d.players) && d.players.length) basePlayers = d.players;
+  }
+  marcarEstado();
+
+  // e por último os rascunhos deste navegador, se houver
   current = { ...base };
   try {
     const saved = JSON.parse(localStorage.getItem(LS_CLUB) || 'null');
@@ -593,11 +747,6 @@ $('#btnAddCard').addEventListener('click', () => {
   } catch (e) { /* ignora */ }
 
   render();
-
-  try {
-    const res = await fetch('data/players.json', { cache: 'no-store' });
-    if (res.ok) basePlayers = (await res.json()).players || [];
-  } catch (e) { /* elenco vazio */ }
 
   editPlayers = normalize(basePlayers);
   try {
