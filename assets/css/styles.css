@@ -549,27 +549,6 @@ input, select { font-family: inherit; }
   text-overflow: ellipsis;
 }
 
-/* ------------------------------------------------------------------- reservas */
-
-.bench {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding: 4px 8px 32px;   /* espaço para a posição e o nome embaixo da carta */
-}
-.bench .bench-slot {
-  position: relative;
-  transform: none;            /* anula o centramento usado pelos slots do campo */
-  flex: 0 0 84px;
-  width: 84px;
-  height: 118px;
-  cursor: pointer;
-}
-.bench .bench-slot .slot-inner { width: 100%; height: 100%; }
-.bench .bench-slot:hover .slot-inner { transform: translateY(-4px); }
-.bench .bench-slot .slot-pos  { bottom: -8px; }
-.bench .bench-slot .slot-name { bottom: -28px; max-width: 128%; }
-
 /* --------------------------------------------------------------------- elenco */
 
 .roster-search {

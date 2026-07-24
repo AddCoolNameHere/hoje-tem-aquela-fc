@@ -17,12 +17,9 @@ let API = '/api';
 let publicadoEm = null;    // quando o admin publicou pela última vez
 let rascunhoLocal = false; // true quando a tela mostra um teste local, não o publicado
 
-const BENCH_SIZE = 7;
-
 const state = {
   formation: '4-3-3',
   slots: new Array(11).fill(null),   // ids de CARTA na ordem de FORMATIONS[formation]
-  bench: new Array(BENCH_SIZE).fill(null),
   active: {},                        // playerId -> id da carta escolhida
   squadName: '',
 };
@@ -30,7 +27,7 @@ const state = {
 let players  = [];                   // elenco carregado de data/players.json
 let variants = [];                   // todas as cartas, achatadas
 let club = { name: 'HOJE TEM AQUELA F.C.', division: null, divisionLabel: '—', crest: null };
-let selected = null;                 // {src:'roster', vid} | {src:'slot', zone, index}
+let selected = null;                 // {src:'roster', vid} | {src:'slot', index}
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -263,11 +260,10 @@ function renderPitch() {
     el.className = 'slot' + (player ? ' ' + fitClass(player, pos) : '');
     el.style.left = (TURF.left + x / 100 * TURF.w) + '%';
     el.style.top  = (TURF.top  + y / 100 * TURF.h) + '%';
-    el.dataset.zone  = 'pitch';
     el.dataset.index = i;
     el.dataset.pos   = pos;
 
-    if (selected && selected.src === 'slot' && selected.zone === 'pitch' && selected.index === i) {
+    if (selected && selected.src === 'slot' && selected.index === i) {
       el.classList.add('is-selected');
     }
 
@@ -287,45 +283,13 @@ function renderPitch() {
   $('#squadSubtitle').textContent = `Time titular · ${filled} de 11 escalados`;
 }
 
-function renderBench() {
-  const bench = $('#bench');
-  bench.innerHTML = '';
-
-  for (let i = 0; i < BENCH_SIZE; i++) {
-    const vid = state.bench[i];
-    const player = vid ? getVariant(vid) : null;
-
-    const el = document.createElement('div');
-    el.className = 'slot bench-slot';
-    el.dataset.zone  = 'bench';
-    el.dataset.index = i;
-    el.dataset.pos   = 'RES';
-
-    if (selected && selected.src === 'slot' && selected.zone === 'bench' && selected.index === i) {
-      el.classList.add('is-selected');
-    }
-
-    el.innerHTML = `
-      <div class="slot-inner" ${player ? 'draggable="true"' : ''}>
-        ${player ? cardHTML(player) : '<div class="slot-empty"></div>'}
-      </div>
-      <span class="slot-pos">${player ? (player.position || '').split('/')[0] || 'RES' : 'RES'}</span>
-      ${player ? `<span class="slot-name" title="${player.name}">${player.name}</span>` : ''}
-      ${player ? '<button class="slot-remove" title="Tirar da reserva">×</button>' : ''}`;
-
-    bench.appendChild(el);
-  }
-
-  $('#benchCount').textContent = `${state.bench.filter(Boolean).length} / ${BENCH_SIZE}`;
-}
-
 /* --------------------------------------------------------------- render elenco */
 
 function renderRoster() {
   const list = $('#rosterList');
   const q = ($('#rosterSearch').value || '').trim().toLowerCase();
   const usedPlayers = new Set(
-    [...state.slots, ...state.bench].filter(Boolean)
+    state.slots.filter(Boolean)
       .map(vid => getVariant(vid)?.playerId).filter(Boolean));
 
   const matches = p => !q
@@ -395,7 +359,6 @@ function renderFormations() {
 
 function renderAll() {
   renderPitch();
-  renderBench();
   renderRoster();
   renderFormations();
   saveState();
@@ -403,32 +366,25 @@ function renderAll() {
 
 /* --------------------------------------------------------------- manipulações */
 
-function zoneArray(zone) { return zone === 'bench' ? state.bench : state.slots; }
-
 /** Coloca uma carta num slot. Se o jogador já estiver escalado, sai do lugar antigo (troca). */
-function placeCard(vid, zone, index) {
+function placeCard(vid, index) {
   const v = getVariant(vid);
   if (!v) return;
 
-  const arr = zoneArray(zone);
-  const outgoing = arr[index];
+  const outgoing = state.slots[index];
 
   // um jogador só ocupa um lugar: se já estava escalado, troca com quem estava aqui
-  const from = findPlayerSlot(v.playerId);
-  if (from) zoneArray(from.zone)[from.index] = outgoing;
+  const de = findPlayerSlot(v.playerId);
+  if (de >= 0) state.slots[de] = outgoing;
 
-  arr[index] = vid;
+  state.slots[index] = vid;
   state.active[v.playerId] = vid;      // a carta usada vira a escolhida no elenco
   renderAll();
 }
 
-/** Onde esse jogador está escalado, seja qual for a carta. */
+/** Em que slot esse jogador está, seja qual for a carta. -1 se não está escalado. */
 function findPlayerSlot(playerId) {
-  const at = (arr, zone) => {
-    const i = arr.findIndex(vid => vid && getVariant(vid)?.playerId === playerId);
-    return i >= 0 ? { zone, index: i } : null;
-  };
-  return at(state.slots, 'pitch') || at(state.bench, 'bench');
+  return state.slots.findIndex(vid => vid && getVariant(vid)?.playerId === playerId);
 }
 
 /** Troca a carta escolhida de um jogador — e atualiza o campo se ele estiver escalado. */
@@ -436,24 +392,21 @@ function setActiveVariant(playerId, vid) {
   if (!getVariant(vid)) return;
   state.active[playerId] = vid;
 
-  const at = findPlayerSlot(playerId);
-  if (at) zoneArray(at.zone)[at.index] = vid;
+  const onde = findPlayerSlot(playerId);
+  if (onde >= 0) state.slots[onde] = vid;
 
   if (selected && selected.src === 'roster') selected = { src: 'roster', vid };
   renderAll();
 }
 
 function swapSlots(a, b) {
-  if (a.zone === b.zone && a.index === b.index) return;
-  const arrA = zoneArray(a.zone), arrB = zoneArray(b.zone);
-  const tmp = arrA[a.index];
-  arrA[a.index] = arrB[b.index];
-  arrB[b.index] = tmp;
+  if (a === b) return;
+  [state.slots[a], state.slots[b]] = [state.slots[b], state.slots[a]];
   renderAll();
 }
 
-function clearSlot(zone, index) {
-  zoneArray(zone)[index] = null;
+function clearSlot(index) {
+  state.slots[index] = null;
   renderAll();
 }
 
@@ -484,7 +437,7 @@ function setupDnD() {
     if (slotInner) {
       const slot = slotInner.closest('.slot');
       e.dataTransfer.setData('text/plain', JSON.stringify({
-        src: 'slot', zone: slot.dataset.zone, index: +slot.dataset.index,
+        src: 'slot', index: +slot.dataset.index,
       }));
       e.dataTransfer.effectAllowed = 'move';
       slot.classList.add('is-dragging');
@@ -524,14 +477,14 @@ function setupDnD() {
 
     // soltar de volta no elenco = tirar do time
     if (rosterPanel && data.src === 'slot') {
-      clearSlot(data.zone, data.index);
+      clearSlot(data.index);
       return;
     }
     if (!slot) return;
 
-    const target = { zone: slot.dataset.zone, index: +slot.dataset.index };
-    if (data.src === 'roster') placeCard(data.vid, target.zone, target.index);
-    else swapSlots({ zone: data.zone, index: data.index }, target);
+    const alvo = +slot.dataset.index;
+    if (data.src === 'roster') placeCard(data.vid, alvo);
+    else swapSlots(data.index, alvo);
   });
 }
 
@@ -546,7 +499,7 @@ function abrirModal(playerId, origem) {
 
   modalPlayerId = playerId;
   const atual = activeVariant(p);
-  const onde  = findPlayerSlot(playerId);
+  const onde  = findPlayerSlot(playerId);   // -1 se nao esta escalado
 
   $('#modalCarta').innerHTML = cardHTML(atual);
   $('#modalNome').textContent = p.name;
@@ -626,7 +579,7 @@ function abrirModal(playerId, origem) {
   }).join('') || '<div class="modal-vazio">Nenhum arquétipo cadastrado ainda.</div>';
 
   // ações mudam conforme o jogador já está escalado ou não
-  $('#modalAcoes').innerHTML = onde
+  $('#modalAcoes').innerHTML = onde >= 0
     ? `<button class="btn" data-acao="trocar">Trocar de lugar</button>
        <button class="btn btn-danger" data-acao="tirar">Tirar do time</button>`
     : `<button class="btn btn-primary" data-acao="escalar">Escalar no campo</button>`;
@@ -681,7 +634,7 @@ function abrirFormacoes() {
 
 /* -------------------------------------------------- sugestões para uma vaga */
 
-let modalVaga = null;   // {zone, index, pos} quando o modal está sugerindo gente
+let modalVaga = null;   // {index, pos} quando o modal está sugerindo gente
 
 const ROTULO_ENCAIXE = {
   'fit-natural': 'Posição natural',
@@ -690,12 +643,12 @@ const ROTULO_ENCAIXE = {
 };
 
 /** Abre o modal com quem serve para essa vaga, do que encaixa melhor pro pior. */
-function abrirSugestoes(zone, index, pos) {
+function abrirSugestoes(index, pos) {
   modalPlayerId = null;
-  modalVaga = { zone, index, pos };
+  modalVaga = { index, pos };
 
   const escalados = new Set(
-    [...state.slots, ...state.bench].filter(Boolean)
+    state.slots.filter(Boolean)
       .map(vid => getVariant(vid)?.playerId).filter(Boolean));
 
   const livres = players.filter(p => !escalados.has(p.id));
@@ -703,7 +656,7 @@ function abrirSugestoes(zone, index, pos) {
   // no banco qualquer um serve; no campo vale o encaixe na posição do slot
   const candidatos = livres.map(p => {
     const v = activeVariant(p);
-    return { p, v, encaixe: zone === 'bench' ? 'fit-natural' : fitClass(v, pos) };
+    return { p, v, encaixe: fitClass(v, pos) };
   });
 
   const ordem = ['fit-natural', 'fit-related', 'fit-out', ''];
@@ -715,11 +668,9 @@ function abrirSugestoes(zone, index, pos) {
   })).filter(g => g.lista.length);
 
   $('#modalCarta').innerHTML = `<div class="vaga-pos">${pos}</div>`;
-  $('#modalNome').textContent = zone === 'bench' ? 'Reserva' : `Vaga de ${pos}`;
+  $('#modalNome').textContent = `Vaga de ${pos}`;
   $('#modalTag').textContent  = `${livres.length} disponíveis · ${escalados.size} já escalados`;
-  $('#modalAtual').textContent = zone === 'bench'
-    ? 'Escolha quem senta no banco'
-    : 'Sugestões pela posição natural de cada um';
+  $('#modalAtual').textContent = 'Sugestões pela posição natural de cada um';
 
   $('#modalArquetipos').innerHTML = grupos.length
     ? grupos.map(g => `
@@ -769,8 +720,7 @@ function setupModal() {
     // escolher alguém para a vaga
     const sug = e.target.closest('.sug[data-vid]');
     if (sug && modalVaga) {
-      const { zone, index } = modalVaga;
-      placeCard(sug.dataset.vid, zone, index);
+      placeCard(sug.dataset.vid, modalVaga.index);
       const v = getVariant(sug.dataset.vid);
       fecharModal();
       toast(`${v.name} escalado`);
@@ -793,8 +743,8 @@ function setupModal() {
     const p = getPlayer(modalPlayerId);
     const onde = findPlayerSlot(modalPlayerId);
 
-    if (btn.dataset.acao === 'tirar' && onde) {
-      clearSlot(onde.zone, onde.index);
+    if (btn.dataset.acao === 'tirar' && onde >= 0) {
+      clearSlot(onde);
       fecharModal();
       return;
     }
@@ -805,8 +755,8 @@ function setupModal() {
       toast('Agora toque na posição do campo');
       return;
     }
-    if (btn.dataset.acao === 'trocar' && onde) {
-      selected = { src: 'slot', zone: onde.zone, index: onde.index };
+    if (btn.dataset.acao === 'trocar' && onde >= 0) {
+      selected = { src: 'slot', index: onde };
       fecharModal();
       renderAll();
       toast('Agora toque em quem vai trocar de lugar');
@@ -825,7 +775,7 @@ function setupClickPlacement() {
     if (rm) {
       const slot = rm.closest('.slot');
       e.stopPropagation();
-      clearSlot(slot.dataset.zone, +slot.dataset.index);
+      clearSlot(+slot.dataset.index);
       return;
     }
 
@@ -841,9 +791,9 @@ function setupClickPlacement() {
 
     // tem alguém esperando destino? então este clique conclui a jogada
     if (slot && selected) {
-      const zone = slot.dataset.zone, index = +slot.dataset.index;
-      if (selected.src === 'roster') placeCard(selected.vid, zone, index);
-      else swapSlots({ zone: selected.zone, index: selected.index }, { zone, index });
+      const index = +slot.dataset.index;
+      if (selected.src === 'roster') placeCard(selected.vid, index);
+      else swapSlots(selected.index, index);
       selected = null;
       return;
     }
@@ -856,12 +806,12 @@ function setupClickPlacement() {
       return;
     }
     if (slot) {
-      const zone = slot.dataset.zone, index = +slot.dataset.index;
-      const vid = zoneArray(zone)[index];
+      const index = +slot.dataset.index;
+      const vid = state.slots[index];
       const v = vid ? getVariant(vid) : null;
 
       if (v) abrirModal(v.playerId, 'campo');
-      else abrirSugestoes(zone, index, slot.dataset.pos);   // clicou no + de uma vaga vazia
+      else abrirSugestoes(index, slot.dataset.pos);   // clicou no + de uma vaga vazia
       return;
     }
 
@@ -882,7 +832,6 @@ function restoreState() {
     if (s && FORMATIONS[s.formation]) {
       state.formation  = s.formation;
       state.slots      = (s.slots || []).slice(0, 11);
-      state.bench      = (s.bench || []).slice(0, BENCH_SIZE);
       state.squadName  = s.squadName || '';
       if (s.active) Object.assign(state.active, s.active);
     }
@@ -894,9 +843,7 @@ function restoreState() {
 /** Completa os arrays e descarta cartas que não existem mais. */
 function normalizeState() {
   while (state.slots.length < 11) state.slots.push(null);
-  while (state.bench.length < BENCH_SIZE) state.bench.push(null);
   state.slots = sanitizeSlots(state.slots.slice(0, 11));
-  state.bench = sanitizeSlots(state.bench.slice(0, BENCH_SIZE));
 
   // a carta escolhida de cada jogador pode ter sumido entre uma sessão e outra
   players.forEach(p => {
@@ -933,7 +880,6 @@ function saveSquad() {
     name,
     formation: state.formation,
     slots: [...state.slots],
-    bench: [...state.bench],
     savedAt: new Date().toISOString(),
   };
   const existing = squads.findIndex(s => s.name === name);
@@ -950,7 +896,6 @@ function loadSquad(i) {
   if (!s) return;
   state.formation = FORMATIONS[s.formation] ? s.formation : state.formation;
   state.slots = [...s.slots];
-  state.bench = [...s.bench];
   state.squadName = s.name;
   $('#squadName').value = s.name;
   selected = null;
@@ -962,7 +907,7 @@ function loadSquad(i) {
 /* ------------------------------------------------------------ compartilhamento */
 
 function encodeState() {
-  const payload = { f: state.formation, s: state.slots, b: state.bench, n: state.squadName };
+  const payload = { f: state.formation, s: state.slots, n: state.squadName };
   return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
 }
 
@@ -972,7 +917,6 @@ function decodeState(hash) {
     if (!FORMATIONS[p.f]) return false;
     state.formation = p.f;
     state.slots = (p.s || []).slice(0, 11);
-    state.bench = (p.b || []).slice(0, BENCH_SIZE);
     state.squadName = p.n || '';
     normalizeState();
     $('#squadName').value = state.squadName;
@@ -1017,7 +961,6 @@ function setupControls() {
   $('#btnClear').addEventListener('click', () => {
     if (!confirm('Limpar todos os jogadores do campo e das reservas?')) return;
     state.slots = new Array(11).fill(null);
-    state.bench = new Array(BENCH_SIZE).fill(null);
     selected = null;
     renderAll();
     toast('Campo limpo');

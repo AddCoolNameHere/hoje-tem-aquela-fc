@@ -146,10 +146,7 @@ function desenharGramado(g, x, y, w, h) {
 /** Gera o PNG da escalação e devolve o blob. */
 async function gerarImagemEscalacao() {
   const layout = FORMATIONS[state.formation];
-  const reservas = state.bench.filter(Boolean);
-  const alturaBanco = reservas.length ? 152 : 0;
-
-  const A = CABECALHO + PITCH_H + alturaBanco + RODAPE;
+  const A = CABECALHO + PITCH_H + RODAPE;
 
   const cv = document.createElement('canvas');
   cv.width = L * ESCALA;
@@ -242,29 +239,6 @@ async function gerarImagemEscalacao() {
     const cx = px + PITCH_W * (TURF_EXP.left + ux / 100 * TURF_EXP.w) / 100;
     const cy = py + PITCH_H * (TURF_EXP.top  + uy / 100 * TURF_EXP.h) / 100;
     await desenhaSlot(v, cx, cy, pos);
-  }
-
-  // ---- reservas
-  if (reservas.length) {
-    const by = CABECALHO + PITCH_H + 16;
-    g.textAlign = 'left'; g.fillStyle = cores.fraquin;
-    g.font = '600 11px Inter, sans-serif';
-    g.fillText('RESERVAS', 36, by + 10);
-
-    const bw = 58, bh = bw / 0.7236;
-    for (let i = 0; i < reservas.length; i++) {
-      const v = getVariant(reservas[i]);
-      if (!v) continue;
-      const x = 34 + i * (bw + 12), y = by + 26;
-      const img = await carregarImagem(v.card);
-      if (img) {
-        retanguloArredondado(g, x, y, bw, bh, bw * 0.07);
-        g.save(); g.clip(); g.drawImage(img, x, y, bw, bh); g.restore();
-      } else {
-        cartaGenerica(g, x, y, bw, bh, v);
-      }
-      pilula(g, v.name, x + bw / 2, y + bh + 12, { fonte: '600 10px Inter, sans-serif', padX: 6 });
-    }
   }
 
   // ---- rodapé
