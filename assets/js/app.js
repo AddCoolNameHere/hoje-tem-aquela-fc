@@ -57,13 +57,21 @@ function initials(name) {
   return (parts.length === 1 ? parts[0].slice(0, 2) : parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-/** Quão bem a posição natural do jogador encaixa no slot. */
-function fitClass(playerPos, slotPos) {
-  if (!playerPos) return '';
-  const natural = String(playerPos).split('/').map(s => s.trim().toUpperCase());
-  if (natural.includes(slotPos)) return 'fit-natural';
+/** Quão bem uma carta encaixa num slot.
+    Manda a lista "Suggested Positions" que o jogo mostra para o arquétipo;
+    só quando o arquétipo é desconhecido é que vale a posição escrita na carta. */
+function fitClass(carta, slotPos) {
+  if (!carta) return '';
+
+  // aceita tanto a carta inteira quanto só a posição, para não quebrar chamada antiga
+  const v = typeof carta === 'string' ? { position: carta } : carta;
+  const base = posicoesDaCarta(v);
+  if (!base.length) return '';
+
+  if (base.includes(slotPos)) return 'fit-natural';
+
   const related = POSITION_RELATED[slotPos] || [];
-  if (natural.some(p => related.includes(p))) return 'fit-related';
+  if (base.some(p => related.includes(p))) return 'fit-related';
   return 'fit-out';
 }
 
@@ -252,7 +260,7 @@ function renderPitch() {
     const player = vid ? getVariant(vid) : null;
 
     const el = document.createElement('div');
-    el.className = 'slot' + (player ? ' ' + fitClass(player.position, pos) : '');
+    el.className = 'slot' + (player ? ' ' + fitClass(player, pos) : '');
     el.style.left = (TURF.left + x / 100 * TURF.w) + '%';
     el.style.top  = (TURF.top  + y / 100 * TURF.h) + '%';
     el.dataset.zone  = 'pitch';
@@ -586,13 +594,18 @@ function abrirModal(playerId, origem) {
 
             // se a carta traz um nome diferente do oficial (ex.: THIEF no RECYCLER), mostra os dois
             const escrito = tem ? arquetipoBase(carta.archetype) : '';
+            // mostra onde o jogo diz que esse arquétipo joga bem
+            const onde = (a.posicoes || []).join(' ') || a.posicao || '';
             const legenda = tem
-              ? [escrito && escrito !== a.nome ? escrito : '', carta.position || a.posicao].filter(Boolean).join(' · ')
-              : 'sem carta';
+              ? [escrito && escrito !== a.nome ? escrito : '', onde].filter(Boolean).join(' · ')
+              : onde || 'sem carta';
 
-            const dica = a.desc
-              ? `${a.desc}${a.playstyles?.length ? '\n\nPlaystyles: ' + a.playstyles.join(', ') : ''}`
-              : '';
+            const dica = [
+              a.inspirado ? `Inspirado em ${a.inspirado}` : '',
+              a.desc || '',
+              a.posicoes?.length ? `Joga bem em: ${a.posicoes.join(', ')}` : '',
+              a.playstyles?.length ? `Playstyles: ${a.playstyles.join(', ')}` : '',
+            ].filter(Boolean).join('\n\n');
 
             return `
               <button class="arq${ativo ? ' is-active' : ''}" ${tem ? `data-vid="${alvo.vid}"` : 'disabled'}
@@ -654,7 +667,7 @@ function abrirSugestoes(zone, index, pos) {
   // no banco qualquer um serve; no campo vale o encaixe na posição do slot
   const candidatos = livres.map(p => {
     const v = activeVariant(p);
-    return { p, v, encaixe: zone === 'bench' ? 'fit-natural' : fitClass(v.position, pos) };
+    return { p, v, encaixe: zone === 'bench' ? 'fit-natural' : fitClass(v, pos) };
   });
 
   const ordem = ['fit-natural', 'fit-related', 'fit-out', ''];

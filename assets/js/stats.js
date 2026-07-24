@@ -154,7 +154,8 @@ function renderDetalhe() {
         ${item2('Vermelhos', s.redCards)}
       </div>
       ${arq ? `<div class="sem-stats" style="text-align:left;border-top:1px solid var(--line-soft)">
-                 <strong style="color:var(--txt-dim)">${arq.nome}</strong> — ${arq.desc}
+                 <strong style="color:var(--txt-dim)">${arq.nome}</strong>${arq.inspirado ? ` <span style="color:var(--txt-faint)">· inspirado em ${arq.inspirado}</span>` : ''} — ${arq.desc}
+                 ${arq.posicoes?.length ? `<br><span style="color:var(--green)">Joga bem em: ${arq.posicoes.join(', ')}</span>` : ''}
                  ${arq.playstyles?.length ? `<br><span style="color:var(--txt-faint)">Playstyles: ${arq.playstyles.join(', ')}</span>` : ''}
                </div>` : ''}
     ` : `<div class="sem-stats">Ainda não tenho as estatísticas desse jogador.<br>

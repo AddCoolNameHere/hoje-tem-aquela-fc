@@ -222,7 +222,7 @@ async function gerarImagemEscalacao() {
     }
     g.restore();
 
-    const encaixe = fitClass(v.position, pos);
+    const encaixe = fitClass(v, pos);
     const cor = encaixe === 'fit-natural' ? cores.verde
               : encaixe === 'fit-related' ? cores.gold
               : encaixe === 'fit-out'     ? cores.vermelho : cores.fraco;
