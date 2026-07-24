@@ -620,6 +620,73 @@ function fecharModal() {
   $('#modalBg').hidden = true;
   document.body.style.overflow = '';
   modalPlayerId = null;
+  modalVaga = null;
+}
+
+/* -------------------------------------------------- sugestões para uma vaga */
+
+let modalVaga = null;   // {zone, index, pos} quando o modal está sugerindo gente
+
+const ROTULO_ENCAIXE = {
+  'fit-natural': 'Posição natural',
+  'fit-related': 'Dá pra jogar',
+  'fit-out':     'Fora de posição',
+};
+
+/** Abre o modal com quem serve para essa vaga, do que encaixa melhor pro pior. */
+function abrirSugestoes(zone, index, pos) {
+  modalPlayerId = null;
+  modalVaga = { zone, index, pos };
+
+  const escalados = new Set(
+    [...state.slots, ...state.bench].filter(Boolean)
+      .map(vid => getVariant(vid)?.playerId).filter(Boolean));
+
+  const livres = players.filter(p => !escalados.has(p.id));
+
+  // no banco qualquer um serve; no campo vale o encaixe na posição do slot
+  const candidatos = livres.map(p => {
+    const v = activeVariant(p);
+    return { p, v, encaixe: zone === 'bench' ? 'fit-natural' : fitClass(v.position, pos) };
+  });
+
+  const ordem = ['fit-natural', 'fit-related', 'fit-out', ''];
+  const grupos = ordem.map(chave => ({
+    chave,
+    lista: candidatos
+      .filter(c => c.encaixe === chave)
+      .sort((a, b) => (b.v.rating ?? -1) - (a.v.rating ?? -1)),
+  })).filter(g => g.lista.length);
+
+  $('#modalCarta').innerHTML = `<div class="vaga-pos">${pos}</div>`;
+  $('#modalNome').textContent = zone === 'bench' ? 'Reserva' : `Vaga de ${pos}`;
+  $('#modalTag').textContent  = `${livres.length} disponíveis · ${escalados.size} já escalados`;
+  $('#modalAtual').textContent = zone === 'bench'
+    ? 'Escolha quem senta no banco'
+    : 'Sugestões pela posição natural de cada um';
+
+  $('#modalArquetipos').innerHTML = grupos.length
+    ? grupos.map(g => `
+        <div class="setor">
+          <div class="setor-nome ${g.chave}">${ROTULO_ENCAIXE[g.chave] || 'Sem posição definida'}</div>
+          <div class="sug-lista">
+            ${g.lista.map(({ p, v }) => `
+              <button class="sug" data-vid="${v.vid}" title="Escalar ${p.name} aqui">
+                <span class="sug-carta">${cardHTML(v)}</span>
+                <span class="txt">
+                  <span class="n">${p.name}</span>
+                  <span class="d">${v.position || 'sem posição'}${v.archetype ? ' · ' + v.archetype : ''}</span>
+                </span>
+                ${v.rating != null ? `<span class="ovr">${v.rating}</span>` : ''}
+              </button>`).join('')}
+          </div>
+        </div>`).join('')
+    : '<div class="modal-vazio">Todo mundo já está escalado.</div>';
+
+  $('#modalAcoes').innerHTML = '<button class="btn" data-acao="fechar">Fechar</button>';
+
+  $('#modalBg').hidden = false;
+  document.body.style.overflow = 'hidden';
 }
 
 function setupModal() {
@@ -634,6 +701,18 @@ function setupModal() {
   });
 
   $('#modalArquetipos').addEventListener('click', e => {
+    // escolher alguém para a vaga
+    const sug = e.target.closest('.sug[data-vid]');
+    if (sug && modalVaga) {
+      const { zone, index } = modalVaga;
+      placeCard(sug.dataset.vid, zone, index);
+      const v = getVariant(sug.dataset.vid);
+      fecharModal();
+      toast(`${v.name} escalado`);
+      return;
+    }
+
+    // trocar o arquétipo
     const btn = e.target.closest('.arq[data-vid]');
     if (!btn || !modalPlayerId) return;
     setActiveVariant(modalPlayerId, btn.dataset.vid);
@@ -643,7 +722,9 @@ function setupModal() {
 
   $('#modalAcoes').addEventListener('click', e => {
     const btn = e.target.closest('[data-acao]');
-    if (!btn || !modalPlayerId) return;
+    if (!btn) return;
+    if (btn.dataset.acao === 'fechar') { fecharModal(); return; }
+    if (!modalPlayerId) return;
     const p = getPlayer(modalPlayerId);
     const onde = findPlayerSlot(modalPlayerId);
 
@@ -710,9 +791,12 @@ function setupClickPlacement() {
       return;
     }
     if (slot) {
-      const vid = zoneArray(slot.dataset.zone)[+slot.dataset.index];
+      const zone = slot.dataset.zone, index = +slot.dataset.index;
+      const vid = zoneArray(zone)[index];
       const v = vid ? getVariant(vid) : null;
+
       if (v) abrirModal(v.playerId, 'campo');
+      else abrirSugestoes(zone, index, slot.dataset.pos);   // clicou no + de uma vaga vazia
       return;
     }
 

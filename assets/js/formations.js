@@ -53,14 +53,31 @@ const POSITION_GROUPS = {
   LW:  'att', RW: 'att', ST: 'att', CF: 'att', LF: 'att', RF: 'att',
 };
 
-/* Posições que "quase" servem (fora da natural, mas jogável) */
+/* Valências: para cada posição do campo, quais posições naturais também dão conta.
+   Vale a lógica do jogo: quem é CDM segura um CM ou até um CB; quem é CM cobre
+   CAM e CDM; ponta joga de lateral quando precisa; e assim por diante. */
 const POSITION_RELATED = {
-  GK: [],
-  CB: ['LB','RB','CDM'], LB: ['LWB','CB','LM'], RB: ['RWB','CB','RM'],
-  LWB: ['LB','LM'], RWB: ['RB','RM'],
-  CDM: ['CM','CB'], CM: ['CDM','CAM'], CAM: ['CM','CF','LM','RM'],
-  LM: ['LW','LWB','CM'], RM: ['RW','RWB','CM'],
-  LW: ['LM','ST','CF'], RW: ['RM','ST','CF'],
-  ST: ['CF','LW','RW'], CF: ['ST','CAM','LW','RW'],
-  LF: ['LW','ST'], RF: ['RW','ST'],
+  GK:  [],
+
+  // linha de trás — o volante desce bem, o ponta faz a lateral
+  CB:  ['CDM','LB','RB','LWB','RWB'],
+  LB:  ['LWB','LM','LW','CB','RB'],
+  RB:  ['RWB','RM','RW','CB','LB'],
+  LWB: ['LB','LM','LW','CB'],
+  RWB: ['RB','RM','RW','CB'],
+
+  // meio — o miolo é o mais intercambiável do time
+  CDM: ['CM','CB','CAM'],
+  CM:  ['CDM','CAM','LM','RM'],
+  CAM: ['CM','CF','LM','RM','LW','RW','ST'],
+  LM:  ['LW','LWB','LB','CM','CAM'],
+  RM:  ['RW','RWB','RB','CM','CAM'],
+
+  // frente
+  LW:  ['LM','CAM','ST','CF','LWB'],
+  RW:  ['RM','CAM','ST','CF','RWB'],
+  ST:  ['CF','LW','RW','CAM'],
+  CF:  ['ST','CAM','LW','RW'],
+  LF:  ['LW','ST','CAM'],
+  RF:  ['RW','ST','CAM'],
 };

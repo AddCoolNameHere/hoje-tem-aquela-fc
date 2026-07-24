@@ -201,6 +201,9 @@
         No site você escolhe qual usar e coloca em qualquer posição do campo.
         As posições atuais foram deduzidas do arquétipo — confira se estão certas.
       </p>
+      <div class="btn-row" style="margin-bottom:14px">
+        <button class="btn" id="btnPosPadrao">Usar as posições padrão dos arquétipos</button>
+      </div>
       <div id="playerRows"></div>
       <div class="btn-row" style="margin-top:14px">
         <button class="btn" id="btnApplyPlayers">Testar só neste navegador</button>
@@ -292,6 +295,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="assets/js/archetypes.js"></script>
 <script>
 const LS_CLUB = 'htafc:club';
 const $ = s => document.querySelector(s);
@@ -566,6 +570,31 @@ $('#playerRows').addEventListener('click', e => {
 $('#btnApplyPlayers').addEventListener('click', () => {
   localStorage.setItem(LS_PLAYERS, JSON.stringify(editPlayers));
   toast('Elenco aplicado neste navegador');
+});
+
+/* Preenche a posição de cada carta com a padrão do arquétipo dela. */
+$('#btnPosPadrao').addEventListener('click', () => {
+  const mudadas = [];
+  const semArquetipo = [];
+
+  editPlayers.forEach(p => p.cards.forEach(c => {
+    const a = arquetipoDaCarta(c.archetype);
+    if (!a) { semArquetipo.push(`${p.name} (${c.archetype || 'sem arquétipo'})`); return; }
+    if (c.position !== a.posicao) {
+      mudadas.push(`${p.name}: ${c.position || '—'} → ${a.posicao}`);
+      c.position = a.posicao;
+    }
+  }));
+
+  if (!mudadas.length && !semArquetipo.length) return toast('Já estavam todas no padrão');
+
+  renderPlayers();
+  const aviso = semArquetipo.length
+    ? ` Sem arquétipo conhecido, não mexi: ${semArquetipo.join(', ')}.`
+    : '';
+  msg(`${mudadas.length} posição(ões) ajustada(s): ${mudadas.join(' · ')}.${aviso} Publique para valer pro time.`,
+      'var(--gold)');
+  toast(`${mudadas.length} posições ajustadas`);
 });
 
 $('#btnCopyPlayers').addEventListener('click', async () => {

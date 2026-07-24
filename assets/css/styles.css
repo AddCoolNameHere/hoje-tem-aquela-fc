@@ -901,6 +901,68 @@ input, select { font-family: inherit; }
 }
 .arq .ovr { font-family: var(--font-head); font-size: 16px; font-weight: 700; color: var(--green); }
 
+/* ---- sugestões para uma vaga ---- */
+
+.vaga-pos {
+  width: 100%; height: 100%;
+  display: grid; place-items: center;
+  font-family: var(--font-head);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--green);
+  background: rgba(0, 230, 118, .1);
+}
+
+.setor-nome.fit-natural { color: var(--green); }
+.setor-nome.fit-related { color: var(--gold); }
+.setor-nome.fit-out     { color: #ff7b6b; }
+
+.sug-lista { display: flex; flex-direction: column; gap: 6px; }
+
+.sug {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 7px 10px 7px 7px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--txt);
+  text-align: left;
+  transition: all .12s;
+}
+.sug:hover { border-color: var(--green-dim); background: #16301f; transform: translateX(2px); }
+
+.sug-carta {
+  width: 38px; height: 53px;
+  flex: none;
+  border-radius: 5px;
+  overflow: hidden;
+  background: #08170e;
+}
+.sug-carta .card, .sug-carta .card-gen { border-radius: 5px; }
+
+.sug .txt { flex: 1; min-width: 0; }
+.sug .txt .n {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sug .txt .d {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .11em;
+  color: var(--txt-faint);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sug .ovr { font-family: var(--font-head); font-size: 17px; font-weight: 700; color: var(--green); }
+
 .modal-pe {
   display: flex;
   gap: 8px;
