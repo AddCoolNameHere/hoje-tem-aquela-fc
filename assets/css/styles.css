@@ -486,6 +486,7 @@ input, select { font-family: inherit; }
 .roster-item {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   padding: 7px 9px;
   border-radius: var(--radius);
@@ -536,6 +537,37 @@ input, select { font-family: inherit; }
   font-size: 17px;
   font-weight: 700;
   color: var(--green);
+}
+
+/* seletor de carta — só aparece para quem tem mais de uma */
+.variant-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 100%;
+  padding-top: 7px;
+  border-top: 1px solid var(--line-soft);
+}
+.variant-pill {
+  flex: 1 1 auto;
+  min-width: 34px;
+  padding: 4px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: #08170e;
+  color: var(--txt-faint);
+  font-family: var(--font-head);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  transition: all .12s;
+}
+.variant-pill:hover { border-color: var(--green-dim); color: var(--txt); }
+.variant-pill.is-active {
+  background: var(--green);
+  border-color: var(--green);
+  color: #04140b;
+  font-weight: 700;
 }
 
 .empty-state {

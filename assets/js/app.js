@@ -4,6 +4,7 @@
 
 const LS_CLUB    = 'htafc:club';
 const LS_PLAYERS = 'htafc:players';
+const LS_BLOBS   = 'htafc:cardblobs';
 const LS_SQUADS  = 'htafc:squads';
 const LS_STATE   = 'htafc:state';
 
@@ -11,21 +12,36 @@ const BENCH_SIZE = 7;
 
 const state = {
   formation: '4-3-3',
-  slots: new Array(11).fill(null),   // ids na ordem de FORMATIONS[formation]
+  slots: new Array(11).fill(null),   // ids de CARTA na ordem de FORMATIONS[formation]
   bench: new Array(BENCH_SIZE).fill(null),
+  active: {},                        // playerId -> id da carta escolhida
   squadName: '',
 };
 
-let players = [];                    // elenco carregado de data/players.json
+let players  = [];                   // elenco carregado de data/players.json
+let variants = [];                   // todas as cartas, achatadas
 let club = { name: 'HOJE TEM AQUELA F.C.', division: null, divisionLabel: '—', crest: null };
-let selected = null;                 // {src:'roster', id} | {src:'slot', zone, index}
+let selected = null;                 // {src:'roster', vid} | {src:'slot', zone, index}
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 /* ------------------------------------------------------------------- helpers */
 
-const getPlayer = id => players.find(p => p.id === id) || null;
+const getPlayer  = id  => players.find(p => p.id === id) || null;
+const getVariant = vid => variants.find(v => v.vid === vid) || null;
+
+/** Carta atualmente escolhida para um jogador. */
+function activeVariant(player) {
+  return getVariant(state.active[player.id]) || player.variants[0];
+}
+
+/** Etiqueta curta do arquétipo, para os botões de variante. */
+function shortArchetype(a) {
+  if (!a) return '—';
+  const plus = a.endsWith('+') ? '+' : '';
+  return a.replace('+', '').slice(0, 3).toUpperCase() + plus;
+}
 
 function initials(name) {
   const parts = String(name || '?').trim().split(/\s+/);
@@ -74,22 +90,72 @@ async function loadData() {
   } catch (e) { /* ignora override corrompido */ }
 
   const roster = await loadJSON('data/players.json', { players: [] });
-  players = (roster.players || []).map((p, i) => ({
-    id: p.id || `p${i + 1}`,
-    name: p.name || `Jogador ${i + 1}`,
-    position: p.position || '',
-    rating: p.rating ?? null,
-    card: p.card || null,
-    ...p,
-  }));
+  let raw = roster.players || [];
 
-  // nomes/posições/overalls editados no admin valem por cima até virarem commit
+  // o admin sobrescreve o elenco inteiro (nomes, posições, variantes) até virar commit
   try {
     const edits = JSON.parse(localStorage.getItem(LS_PLAYERS) || 'null');
-    if (Array.isArray(edits)) {
-      players = players.map(p => ({ ...p, ...(edits.find(e => e.id === p.id) || {}) }));
-    }
+    if (Array.isArray(edits) && edits.length) raw = edits;
   } catch (e) { /* ignora edição corrompida */ }
+
+  buildRoster(raw);
+}
+
+/** Normaliza o elenco e monta a lista achatada de cartas. */
+function buildRoster(raw) {
+  variants = [];
+
+  // cartas recortadas no admin que ainda não viraram arquivo no repositório
+  let blobs = {};
+  try { blobs = JSON.parse(localStorage.getItem(LS_BLOBS) || '{}'); } catch (e) { /* ignora */ }
+
+  players = raw.map((p, i) => {
+    const id = p.id || `p${i + 1}`;
+    const player = {
+      id,
+      name: p.name || `Jogador ${i + 1}`,
+      gamertag: p.gamertag || id,
+    };
+
+    // aceita tanto o formato novo (cards[]) quanto o antigo (uma carta solta no jogador)
+    const list = (Array.isArray(p.cards) && p.cards.length)
+      ? p.cards
+      : [{ id: `${id}-1`, archetype: p.archetype, position: p.position, rating: p.rating, card: p.card }];
+
+    player.variants = list.map((c, j) => {
+      const v = {
+        vid: c.id || `${id}-${j + 1}`,
+        playerId: id,
+        name: player.name,
+        gamertag: player.gamertag,
+        archetype: c.archetype || '',
+        position: c.position || '',
+        rating: c.rating ?? null,
+        card: (c.card && blobs[c.card]) || c.card || null,
+      };
+      variants.push(v);
+      return v;
+    });
+
+    return player;
+  });
+
+  // garante que cada jogador tem uma carta escolhida e válida
+  players.forEach(p => {
+    if (!p.variants.some(v => v.vid === state.active[p.id])) {
+      state.active[p.id] = p.variants[0].vid;
+    }
+  });
+}
+
+/** Descarta ids de carta que não existem mais e migra ids antigos de jogador. */
+function sanitizeSlots(arr) {
+  return arr.map(id => {
+    if (!id) return null;
+    if (getVariant(id)) return id;
+    const p = getPlayer(id);                    // escalação salva antes das variantes
+    return p ? activeVariant(p).vid : null;
+  });
 }
 
 /* --------------------------------------------------------------- render club */
@@ -137,8 +203,8 @@ function renderPitch() {
 
   const layout = FORMATIONS[state.formation];
   layout.forEach(([pos, x, y], i) => {
-    const id = state.slots[i];
-    const player = id ? getPlayer(id) : null;
+    const vid = state.slots[i];
+    const player = vid ? getVariant(vid) : null;
 
     const el = document.createElement('div');
     el.className = 'slot' + (player ? ' ' + fitClass(player.position, pos) : '');
@@ -172,8 +238,8 @@ function renderBench() {
   bench.innerHTML = '';
 
   for (let i = 0; i < BENCH_SIZE; i++) {
-    const id = state.bench[i];
-    const player = id ? getPlayer(id) : null;
+    const vid = state.bench[i];
+    const player = vid ? getVariant(vid) : null;
 
     const el = document.createElement('div');
     el.className = 'slot bench-slot';
@@ -203,18 +269,24 @@ function renderBench() {
 function renderRoster() {
   const list = $('#rosterList');
   const q = ($('#rosterSearch').value || '').trim().toLowerCase();
-  const used = new Set([...state.slots, ...state.bench].filter(Boolean));
+  const usedPlayers = new Set(
+    [...state.slots, ...state.bench].filter(Boolean)
+      .map(vid => getVariant(vid)?.playerId).filter(Boolean));
 
-  const visible = players.filter(p =>
-    !q || p.name.toLowerCase().includes(q) || (p.position || '').toLowerCase().includes(q));
+  const matches = p => !q
+    || p.name.toLowerCase().includes(q)
+    || p.gamertag.toLowerCase().includes(q)
+    || p.variants.some(v => (v.position + ' ' + v.archetype).toLowerCase().includes(q));
 
-  $('#rosterCount').textContent = `${used.size} / ${players.length}`;
+  const visible = players.filter(matches);
+
+  $('#rosterCount').textContent = `${usedPlayers.size} / ${players.length}`;
 
   if (!players.length) {
     list.innerHTML = `
       <div class="empty-state">
         <strong>Nenhuma carta ainda</strong>
-        Coloque os PNGs recortados em <code>cards/</code> e cadastre o elenco em <code>data/players.json</code>.
+        Recorte os prints em <code>admin.html</code> e cadastre o elenco em <code>data/players.json</code>.
       </div>`;
     return;
   }
@@ -224,16 +296,31 @@ function renderRoster() {
     return;
   }
 
-  list.innerHTML = visible.map(p => `
-    <div class="roster-item${used.has(p.id) ? ' is-used' : ''}${selected && selected.src === 'roster' && selected.id === p.id ? ' is-selected' : ''}"
-         draggable="true" data-id="${p.id}">
-      <div class="thumb">${p.card ? `<img src="${p.card}" alt="" draggable="false" onerror="this.remove()">` : initials(p.name)}</div>
-      <div class="info">
-        <div class="n">${p.name}</div>
-        <div class="p">${p.position || 'sem posição'}</div>
-      </div>
-      <div class="ovr">${p.rating ?? ''}</div>
-    </div>`).join('');
+  list.innerHTML = visible.map(p => {
+    const v = activeVariant(p);
+    const isSel = selected && selected.src === 'roster' && selected.vid === v.vid;
+
+    const pills = p.variants.length > 1
+      ? `<div class="variant-pills">${p.variants.map(x => `
+           <button class="variant-pill${x.vid === v.vid ? ' is-active' : ''}"
+                   data-vid="${x.vid}" data-player="${p.id}"
+                   title="${x.archetype || 'Carta'} · ${x.position || '?'} · ${x.rating ?? '?'}">
+             ${shortArchetype(x.archetype)}
+           </button>`).join('')}</div>`
+      : '';
+
+    return `
+      <div class="roster-item${usedPlayers.has(p.id) ? ' is-used' : ''}${isSel ? ' is-selected' : ''}"
+           draggable="true" data-vid="${v.vid}">
+        <div class="thumb">${v.card ? `<img src="${v.card}" alt="" draggable="false" onerror="this.remove()">` : initials(p.name)}</div>
+        <div class="info">
+          <div class="n">${p.name}</div>
+          <div class="p">${v.position || 'sem posição'}${v.archetype ? ' · ' + v.archetype : ''}</div>
+        </div>
+        <div class="ovr">${v.rating ?? ''}</div>
+        ${pills}
+      </div>`;
+  }).join('');
 }
 
 /* ----------------------------------------------------------- render formações */
@@ -263,26 +350,42 @@ function renderAll() {
 
 function zoneArray(zone) { return zone === 'bench' ? state.bench : state.slots; }
 
-/** Coloca um jogador num slot. Se já estiver escalado, sai do lugar antigo (troca). */
-function placePlayer(playerId, zone, index) {
+/** Coloca uma carta num slot. Se o jogador já estiver escalado, sai do lugar antigo (troca). */
+function placeCard(vid, zone, index) {
+  const v = getVariant(vid);
+  if (!v) return;
+
   const arr = zoneArray(zone);
   const outgoing = arr[index];
 
-  // se o jogador já estava em outro slot, faz a troca
-  const from = findPlayerSlot(playerId);
-  if (from) {
-    zoneArray(from.zone)[from.index] = outgoing;
-  }
-  arr[index] = playerId;
+  // um jogador só ocupa um lugar: se já estava escalado, troca com quem estava aqui
+  const from = findPlayerSlot(v.playerId);
+  if (from) zoneArray(from.zone)[from.index] = outgoing;
+
+  arr[index] = vid;
+  state.active[v.playerId] = vid;      // a carta usada vira a escolhida no elenco
   renderAll();
 }
 
+/** Onde esse jogador está escalado, seja qual for a carta. */
 function findPlayerSlot(playerId) {
-  let i = state.slots.indexOf(playerId);
-  if (i >= 0) return { zone: 'pitch', index: i };
-  i = state.bench.indexOf(playerId);
-  if (i >= 0) return { zone: 'bench', index: i };
-  return null;
+  const at = (arr, zone) => {
+    const i = arr.findIndex(vid => vid && getVariant(vid)?.playerId === playerId);
+    return i >= 0 ? { zone, index: i } : null;
+  };
+  return at(state.slots, 'pitch') || at(state.bench, 'bench');
+}
+
+/** Troca a carta escolhida de um jogador — e atualiza o campo se ele estiver escalado. */
+function setActiveVariant(playerId, vid) {
+  if (!getVariant(vid)) return;
+  state.active[playerId] = vid;
+
+  const at = findPlayerSlot(playerId);
+  if (at) zoneArray(at.zone)[at.index] = vid;
+
+  if (selected && selected.src === 'roster') selected = { src: 'roster', vid };
+  renderAll();
 }
 
 function swapSlots(a, b) {
@@ -318,7 +421,7 @@ function setupDnD() {
     const slotInner  = e.target.closest('.slot-inner[draggable="true"]');
 
     if (rosterItem) {
-      e.dataTransfer.setData('text/plain', JSON.stringify({ src: 'roster', id: rosterItem.dataset.id }));
+      e.dataTransfer.setData('text/plain', JSON.stringify({ src: 'roster', vid: rosterItem.dataset.vid }));
       e.dataTransfer.effectAllowed = 'move';
       rosterItem.classList.add('is-dragging');
       return;
@@ -372,7 +475,7 @@ function setupDnD() {
     if (!slot) return;
 
     const target = { zone: slot.dataset.zone, index: +slot.dataset.index };
-    if (data.src === 'roster') placePlayer(data.id, target.zone, target.index);
+    if (data.src === 'roster') placeCard(data.vid, target.zone, target.index);
     else swapSlots({ zone: data.zone, index: data.index }, target);
   });
 }
@@ -390,13 +493,21 @@ function setupClickPlacement() {
       return;
     }
 
+    // trocar a carta do jogador (não seleciona a linha)
+    const pill = e.target.closest('.variant-pill');
+    if (pill) {
+      e.stopPropagation();
+      setActiveVariant(pill.dataset.player, pill.dataset.vid);
+      return;
+    }
+
     // selecionar no elenco
     const item = e.target.closest('.roster-item');
     if (item) {
-      const id = item.dataset.id;
-      selected = (selected && selected.src === 'roster' && selected.id === id)
+      const vid = item.dataset.vid;
+      selected = (selected && selected.src === 'roster' && selected.vid === vid)
         ? null
-        : { src: 'roster', id };
+        : { src: 'roster', vid };
       renderRoster();
       renderPitch();
       renderBench();
@@ -410,7 +521,7 @@ function setupClickPlacement() {
       const occupied = zoneArray(zone)[index];
 
       if (selected && selected.src === 'roster') {
-        placePlayer(selected.id, zone, index);
+        placeCard(selected.vid, zone, index);
         selected = null;
         return;
       }
@@ -445,11 +556,24 @@ function restoreState() {
       state.slots      = (s.slots || []).slice(0, 11);
       state.bench      = (s.bench || []).slice(0, BENCH_SIZE);
       state.squadName  = s.squadName || '';
+      if (s.active) Object.assign(state.active, s.active);
     }
   } catch (e) { /* estado corrompido, começa do zero */ }
+  normalizeState();
+  $('#squadName').value = state.squadName;
+}
+
+/** Completa os arrays e descarta cartas que não existem mais. */
+function normalizeState() {
   while (state.slots.length < 11) state.slots.push(null);
   while (state.bench.length < BENCH_SIZE) state.bench.push(null);
-  $('#squadName').value = state.squadName;
+  state.slots = sanitizeSlots(state.slots.slice(0, 11));
+  state.bench = sanitizeSlots(state.bench.slice(0, BENCH_SIZE));
+
+  // a carta escolhida de cada jogador pode ter sumido entre uma sessão e outra
+  players.forEach(p => {
+    if (!p.variants.some(v => v.vid === state.active[p.id])) state.active[p.id] = p.variants[0].vid;
+  });
 }
 
 function getSquads() {
@@ -502,6 +626,7 @@ function loadSquad(i) {
   state.squadName = s.name;
   $('#squadName').value = s.name;
   selected = null;
+  normalizeState();
   renderAll();
   toast(`"${s.name}" carregada`);
 }
@@ -521,8 +646,7 @@ function decodeState(hash) {
     state.slots = (p.s || []).slice(0, 11);
     state.bench = (p.b || []).slice(0, BENCH_SIZE);
     state.squadName = p.n || '';
-    while (state.slots.length < 11) state.slots.push(null);
-    while (state.bench.length < BENCH_SIZE) state.bench.push(null);
+    normalizeState();
     $('#squadName').value = state.squadName;
     return true;
   } catch { return false; }

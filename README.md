@@ -30,17 +30,23 @@ data/club.json        nome do clube + divisão atual
 data/players.json     elenco
 ```
 
-## Cadastrando um jogador
+## Cartas e variantes
 
-As cartas em `cards/` são recortes dos prints do menu **Club Squad** do jogo. Num print
-4K (3840x2160) a moldura da carta fica exatamente em `x=249, y=290, 720x995` — é só
-recortar essa região e salvar como `cards/<gamertag>.jpg`.
+Cada jogador tem uma **lista de cartas**. Como o mesmo cara pode ter um FINISHER e um
+THIEF, cada carta guarda a própria posição e o próprio overall. No elenco aparecem
+botõezinhos com o arquétipo (`FIN+`, `THI`…) para escolher qual usar — e a carta
+escolhida pode ir em qualquer posição do campo.
 
-Depois adicione a entrada em `data/players.json`:
+Um jogador ocupa **um lugar só**: escolher outra carta dele troca a que já está em campo.
 
 ```json
-{ "id": "boliclifer", "name": "boliclifer", "gamertag": "boliclifer",
-  "archetype": "JOKER", "position": "CAM", "rating": 86, "card": "cards/boliclifer.jpg" }
+{
+  "id": "boliclifer", "name": "boliclifer", "gamertag": "boliclifer",
+  "cards": [
+    { "id": "boliclifer-joker", "archetype": "JOKER",  "position": "CAM",   "rating": 86, "card": "cards/boliclifer.jpg" },
+    { "id": "boliclifer-spark", "archetype": "SPARK+", "position": "RW/RM", "rating": 81, "card": "cards/boliclifer-spark.jpg" }
+  ]
+}
 ```
 
 `position` aceita mais de uma separada por `/` (ex.: `"LB/LWB"`).
@@ -49,15 +55,30 @@ Se `card` for `null`, o site desenha sozinho uma carta verde e preta com as inic
 > As posições atuais foram **deduzidas** do arquétipo e dos atributos de cada carta —
 > o print do Club Squad não mostra a posição. Confira em `admin.html`.
 
+### Recorte automático
+
+As imagens em `cards/` são recortes dos prints do menu **Club Squad**. Num print 4K
+(3840x2160) a moldura da carta fica em `x=249, y=290, 720x995` — o que dá
+`6.48% / 13.43% / 18.75% / 46.06%` da imagem, e é isso que o admin usa por padrão para
+qualquer resolução 16:9.
+
 ## Admin
 
-`admin.html` tem duas coisas:
+`admin.html` tem três coisas:
 
-- **Divisão atual** — escolha o número e clique em **Aplicar**; vale na hora naquele navegador.
-- **Elenco** — troque nome, posição e overall de cada jogador.
+- **Divisão atual** — escolha o número e clique em **Aplicar**.
+- **Elenco** — troque nome, arquétipo, posição e overall de cada carta; remova cartas ou jogadores.
+- **Adicionar carta** — escolha o print do Club Squad, o recorte da moldura sai sozinho.
+  Confira a prévia, preencha arquétipo/posição/overall e clique em **Adicionar ao elenco**.
 
-Para valer para o time todo, copie o JSON gerado e salve em `data/club.json` /
-`data/players.json` no repositório.
+Tudo isso vale **só no navegador de quem mexeu**. Para valer para o time todo:
+
+1. **Baixar recorte** e colocar o `.jpg` em `cards/`.
+2. Copiar o JSON gerado para `data/players.json` (e `data/club.json` para a divisão).
+3. Commitar os dois.
+
+Enquanto o arquivo não é commitado, a carta nova aparece só para quem a adicionou —
+para os outros, o site desenha a carta verde e preta com as iniciais.
 
 ## Rodando local
 

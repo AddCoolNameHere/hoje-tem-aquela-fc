@@ -46,29 +46,71 @@
     max-height: 340px; overflow-y: auto;
     font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
   }
-  .p-row {
-    display: grid;
-    grid-template-columns: 46px minmax(0,1fr) 108px 62px;
-    gap: 8px; align-items: center;
-    padding: 7px 0;
-    border-bottom: 1px solid var(--line-soft);
-  }
-  .p-row:last-child { border-bottom: none; }
-  .p-row img {
-    width: 46px; height: 64px; object-fit: contain;
-    border-radius: 5px; background: #08170e;
-  }
-  .p-row input, .p-row select {
-    width: 100%; padding: 7px 9px; border-radius: 7px;
+  input, select, textarea {
+    padding: 7px 9px; border-radius: 7px;
     border: 1px solid var(--line); background: #060f0a; color: var(--txt);
-    font-size: 12.5px; outline: none;
+    font-size: 12.5px; outline: none; font-family: inherit;
   }
-  .p-row input:focus, .p-row select:focus { border-color: var(--green-dim); }
-  .p-row .tag { font-size: 10px; color: var(--txt-faint); letter-spacing: .1em; margin-top: 3px; }
-  .p-head {
-    display: grid; grid-template-columns: 46px minmax(0,1fr) 108px 62px; gap: 8px;
-    font-size: 9.5px; text-transform: uppercase; letter-spacing: .16em;
-    color: var(--txt-faint); padding-bottom: 7px; border-bottom: 1px solid var(--line);
+  input:focus, select:focus { border-color: var(--green-dim); }
+
+  /* ---- elenco ---- */
+  .p-player {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 11px 12px;
+    margin-bottom: 9px;
+    background: #081109;
+  }
+  .p-player-head { display: flex; align-items: center; gap: 9px; margin-bottom: 9px; }
+  .p-player-head input { flex: 1; min-width: 0; font-weight: 600; }
+  .p-player-head .gt {
+    font-size: 10px; color: var(--txt-faint); letter-spacing: .1em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;
+  }
+  .mini {
+    padding: 5px 9px; border-radius: 7px; border: 1px solid var(--line);
+    background: var(--panel-2); color: var(--txt-dim);
+    font-size: 10.5px; font-weight: 600; letter-spacing: .08em; white-space: nowrap;
+  }
+  .mini:hover { border-color: var(--green-dim); color: var(--txt); }
+  .mini.danger:hover { border-color: #6b2020; background: #2a0d0d; color: #ff8f7d; }
+
+  .p-variant {
+    display: grid;
+    grid-template-columns: 42px minmax(0,1fr) 92px 56px 26px;
+    gap: 6px 7px; align-items: center;
+    padding: 7px 0;
+    border-top: 1px solid var(--line-soft);
+  }
+  .p-variant img {
+    width: 42px; height: 58px; object-fit: contain;
+    border-radius: 5px; background: #08170e; grid-row: span 2;
+  }
+  .p-variant .path { grid-column: 2 / 6; font-size: 11px; color: var(--txt-faint); }
+  .p-varhead {
+    display: grid; grid-template-columns: 42px minmax(0,1fr) 92px 56px 26px; gap: 7px;
+    font-size: 9px; text-transform: uppercase; letter-spacing: .15em; color: var(--txt-faint);
+  }
+
+  /* ---- recortador ---- */
+  .crop-grid { display: grid; grid-template-columns: 200px minmax(0,1fr); gap: 18px; }
+  .crop-preview {
+    background: #060f0a; border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 10px; display: grid; place-items: center; min-height: 220px;
+  }
+  .crop-preview canvas { max-width: 100%; border-radius: 7px; }
+  .crop-preview .ph { font-size: 11.5px; color: var(--txt-faint); text-align: center; line-height: 1.6; }
+  .crop-nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+  .crop-nums label { display: block; font-size: 9px; letter-spacing: .14em; color: var(--txt-faint); margin-bottom: 4px; }
+  .crop-nums input { width: 100%; }
+  .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .form-grid label { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: .15em; color: var(--txt-faint); margin-bottom: 5px; }
+  .form-grid input, .form-grid select { width: 100%; }
+
+  @media (max-width: 640px) {
+    .crop-grid { grid-template-columns: minmax(0,1fr); }
+    .p-variant, .p-varhead { grid-template-columns: 42px minmax(0,1fr) 70px 48px 24px; }
   }
 </style>
 </head>
@@ -135,13 +177,80 @@
     </div>
     <div class="panel-body">
       <p style="font-size:12px;color:var(--txt-faint);margin:0 0 14px;line-height:1.6">
-        Troque o nome, a posição e o overall de cada jogador. As posições foram deduzidas
-        do arquétipo da carta — confira se estão certas.
+        Cada jogador pode ter várias cartas, e cada carta tem posição e overall próprios.
+        No site você escolhe qual usar e coloca em qualquer posição do campo.
+        As posições atuais foram deduzidas do arquétipo — confira se estão certas.
       </p>
       <div id="playerRows"></div>
       <div class="btn-row" style="margin-top:14px">
         <button class="btn btn-primary" id="btnApplyPlayers">Aplicar neste navegador</button>
         <button class="btn" id="btnResetPlayers">Descartar alterações</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h3>Adicionar carta</h3></div>
+    <div class="panel-body">
+      <p style="font-size:12px;color:var(--txt-faint);margin:0 0 14px;line-height:1.6">
+        Escolha o print do menu <strong>Club Squad</strong> — o recorte da moldura sai sozinho.
+        Confira a prévia, ajuste se precisar, e clique em <strong>Adicionar ao elenco</strong>.
+        Depois baixe o recorte e coloque em <code style="color:var(--green)">cards/</code> no repositório.
+      </p>
+
+      <div class="crop-grid">
+        <div class="crop-preview" id="cropPreview">
+          <span class="ph">A prévia do recorte<br>aparece aqui</span>
+        </div>
+
+        <div>
+          <div class="field-row">
+            <label for="cropFile">Print do Club Squad</label>
+            <input type="file" id="cropFile" accept="image/*" style="width:100%">
+          </div>
+
+          <div class="field-row">
+            <label>Área do recorte (% da imagem)</label>
+            <div class="crop-nums">
+              <div><label for="cx">X</label><input type="number" id="cx" step="0.01" value="6.48"></div>
+              <div><label for="cy">Y</label><input type="number" id="cy" step="0.01" value="13.43"></div>
+              <div><label for="cw">Largura</label><input type="number" id="cw" step="0.01" value="18.75"></div>
+              <div><label for="ch">Altura</label><input type="number" id="ch" step="0.01" value="46.06"></div>
+            </div>
+          </div>
+
+          <div class="form-grid" style="margin-top:14px">
+            <div class="full">
+              <label for="fPlayer">Jogador</label>
+              <select id="fPlayer"></select>
+            </div>
+            <div class="full" id="newPlayerWrap" style="display:none">
+              <label for="fGamertag">Gamertag do novo jogador</label>
+              <input type="text" id="fGamertag" placeholder="ex.: JoaoGrillo16">
+            </div>
+            <div>
+              <label for="fArchetype">Arquétipo</label>
+              <input type="text" id="fArchetype" placeholder="ex.: FINISHER+">
+            </div>
+            <div>
+              <label for="fPosition">Posição</label>
+              <input type="text" id="fPosition" list="posList" placeholder="ex.: ST">
+            </div>
+            <div>
+              <label for="fRating">Overall (LEVEL)</label>
+              <input type="number" id="fRating" min="0" max="120" placeholder="ex.: 97">
+            </div>
+            <div>
+              <label for="fFile">Nome do arquivo</label>
+              <input type="text" id="fFile" placeholder="gerado sozinho">
+            </div>
+          </div>
+
+          <div class="btn-row" style="margin-top:14px">
+            <button class="btn btn-primary" id="btnAddCard">Adicionar ao elenco</button>
+            <button class="btn" id="btnDownload">Baixar recorte</button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -220,38 +329,91 @@ $('#btnCopy').addEventListener('click', async () => {
 /* ------------------------------------------------------------------- elenco */
 
 const LS_PLAYERS = 'htafc:players';
+const LS_BLOBS   = 'htafc:cardblobs';
 const POSITIONS = ['GK','CB','LB','RB','LWB','RWB','CDM','CM','CAM','LM','RM','LW','RW','CF','ST'];
 
 let basePlayers = [];   // o que está em data/players.json
 let editPlayers = [];   // o que está sendo editado aqui
 
-function renderPlayers() {
-  $('#playerCount').textContent = editPlayers.length;
+const esc = s => String(s ?? '').replace(/"/g, '&quot;');
 
-  $('#playerRows').innerHTML =
-    `<div class="p-head"><span></span><span>Nome</span><span>Posição</span><span>Overall</span></div>` +
-    editPlayers.map((p, i) => `
-      <div class="p-row">
-        ${p.card ? `<img src="${p.card}" alt="">` : '<span></span>'}
-        <span>
-          <input type="text" data-i="${i}" data-k="name" value="${(p.name || '').replace(/"/g, '&quot;')}">
-          <span class="tag">${p.gamertag || p.id}${p.archetype ? ' · ' + p.archetype : ''}</span>
-        </span>
-        <input type="text" data-i="${i}" data-k="position" value="${p.position || ''}" list="posList" placeholder="ex.: CM/CAM">
-        <input type="number" data-i="${i}" data-k="rating" value="${p.rating ?? ''}" min="0" max="120">
-      </div>`).join('') +
+/** Prévias guardadas neste navegador, para a carta aparecer antes do commit. */
+function getBlobs() {
+  try { return JSON.parse(localStorage.getItem(LS_BLOBS) || '{}'); } catch { return {}; }
+}
+const blobFor = path => getBlobs()[path] || path;
+
+/** Converte o formato antigo (uma carta solta no jogador) para cards[]. */
+function normalize(list) {
+  return list.map((p, i) => {
+    const id = p.id || `p${i + 1}`;
+    const cards = (Array.isArray(p.cards) && p.cards.length)
+      ? p.cards
+      : [{ id: `${id}-1`, archetype: p.archetype, position: p.position, rating: p.rating, card: p.card }];
+    return { id, name: p.name || id, gamertag: p.gamertag || id, cards: cards.map(c => ({ ...c })) };
+  });
+}
+
+function syncJson() {
+  $('#playersJson').textContent = JSON.stringify({ players: editPlayers }, null, 2);
+}
+
+function renderPlayers() {
+  $('#playerCount').textContent =
+    `${editPlayers.length} jogadores · ${editPlayers.reduce((n, p) => n + p.cards.length, 0)} cartas`;
+
+  $('#playerRows').innerHTML = editPlayers.map((p, i) => `
+    <div class="p-player">
+      <div class="p-player-head">
+        <input type="text" data-p="${i}" data-k="name" value="${esc(p.name)}">
+        <span class="gt">${esc(p.gamertag)}</span>
+        <button class="mini danger" data-delplayer="${i}" title="Remover jogador">Remover</button>
+      </div>
+      <div class="p-varhead"><span></span><span>Arquétipo</span><span>Posição</span><span>Overall</span><span></span></div>
+      ${p.cards.map((c, j) => `
+        <div class="p-variant">
+          <img src="${esc(blobFor(c.card))}" alt="" onerror="this.style.visibility='hidden'">
+          <input type="text" data-p="${i}" data-c="${j}" data-k="archetype" value="${esc(c.archetype)}" placeholder="ex.: JOKER">
+          <input type="text" data-p="${i}" data-c="${j}" data-k="position" value="${esc(c.position)}" list="posList" placeholder="ex.: CM/CAM">
+          <input type="number" data-p="${i}" data-c="${j}" data-k="rating" value="${c.rating ?? ''}" min="0" max="120">
+          <button class="mini danger" data-delcard="${i}:${j}" title="Remover carta"${p.cards.length < 2 ? ' disabled style="opacity:.3"' : ''}>×</button>
+          <input class="path" type="text" data-p="${i}" data-c="${j}" data-k="card" value="${esc(c.card)}" placeholder="cards/arquivo.jpg">
+        </div>`).join('')}
+    </div>`).join('') +
     `<datalist id="posList">${POSITIONS.map(p => `<option value="${p}">`).join('')}</datalist>`;
 
-  $('#playersJson').textContent = JSON.stringify({ players: editPlayers }, null, 2);
+  syncJson();
+  refreshPlayerSelect();
 }
 
 $('#playerRows').addEventListener('input', e => {
   const el = e.target;
   if (!el.dataset.k) return;
-  const p = editPlayers[+el.dataset.i];
-  if (el.dataset.k === 'rating') p.rating = el.value === '' ? null : +el.value;
-  else p[el.dataset.k] = el.value;
-  $('#playersJson').textContent = JSON.stringify({ players: editPlayers }, null, 2);
+  const target = el.dataset.c === undefined
+    ? editPlayers[+el.dataset.p]
+    : editPlayers[+el.dataset.p].cards[+el.dataset.c];
+
+  if (el.dataset.k === 'rating') target.rating = el.value === '' ? null : +el.value;
+  else target[el.dataset.k] = el.value;
+  syncJson();
+});
+
+$('#playerRows').addEventListener('click', e => {
+  const delCard = e.target.closest('[data-delcard]');
+  if (delCard) {
+    const [i, j] = delCard.dataset.delcard.split(':').map(Number);
+    if (editPlayers[i].cards.length < 2) return;
+    editPlayers[i].cards.splice(j, 1);
+    renderPlayers();
+    return;
+  }
+  const delPlayer = e.target.closest('[data-delplayer]');
+  if (delPlayer) {
+    const i = +delPlayer.dataset.delplayer;
+    if (!confirm(`Remover ${editPlayers[i].name} e todas as cartas dele?`)) return;
+    editPlayers.splice(i, 1);
+    renderPlayers();
+  }
 });
 
 $('#btnApplyPlayers').addEventListener('click', () => {
@@ -260,8 +422,10 @@ $('#btnApplyPlayers').addEventListener('click', () => {
 });
 
 $('#btnResetPlayers').addEventListener('click', () => {
+  if (!confirm('Descartar todas as alterações, inclusive as cartas adicionadas aqui?')) return;
   localStorage.removeItem(LS_PLAYERS);
-  editPlayers = basePlayers.map(p => ({ ...p }));
+  localStorage.removeItem(LS_BLOBS);
+  editPlayers = normalize(basePlayers);
   renderPlayers();
   toast('Voltou ao valor do repositório');
 });
@@ -269,6 +433,141 @@ $('#btnResetPlayers').addEventListener('click', () => {
 $('#btnCopyPlayers').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText($('#playersJson').textContent); toast('JSON do elenco copiado'); }
   catch { toast('Não consegui copiar — selecione manualmente'); }
+});
+
+/* --------------------------------------------------- recortar e adicionar carta */
+
+let srcImg = null;
+const OUT_W = 480;
+
+function refreshPlayerSelect() {
+  const sel = $('#fPlayer');
+  const keep = sel.value;
+  sel.innerHTML = editPlayers.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')
+    + '<option value="__novo__">+ Novo jogador</option>';
+  sel.value = editPlayers.some(p => p.id === keep) || keep === '__novo__' ? keep : (editPlayers[0]?.id || '__novo__');
+  $('#newPlayerWrap').style.display = sel.value === '__novo__' ? '' : 'none';
+}
+
+$('#fPlayer').addEventListener('change', () => {
+  $('#newPlayerWrap').style.display = $('#fPlayer').value === '__novo__' ? '' : 'none';
+  suggestFilename();
+});
+
+const slug = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+
+function suggestFilename() {
+  const isNew = $('#fPlayer').value === '__novo__';
+  const base = isNew ? $('#fGamertag').value : (editPlayers.find(p => p.id === $('#fPlayer').value)?.gamertag || '');
+  const arch = $('#fArchetype').value;
+  if (!base) return;
+  const player = editPlayers.find(p => p.id === $('#fPlayer').value);
+  // se o jogador já tem carta, o arquivo novo leva o arquétipo no nome pra não colidir
+  const needsSuffix = !isNew && player && player.cards.length > 0;
+  $('#fFile').value = slug(base) + (needsSuffix && arch ? '-' + slug(arch) : '');
+}
+
+['#fGamertag', '#fArchetype'].forEach(s => $(s).addEventListener('input', suggestFilename));
+
+function drawCrop() {
+  const box = $('#cropPreview');
+  if (!srcImg) return;
+
+  const num = id => parseFloat($(id).value) || 0;
+  const sx = num('#cx') / 100 * srcImg.naturalWidth;
+  const sy = num('#cy') / 100 * srcImg.naturalHeight;
+  const sw = num('#cw') / 100 * srcImg.naturalWidth;
+  const sh = num('#ch') / 100 * srcImg.naturalHeight;
+  if (sw <= 0 || sh <= 0) return;
+
+  let cv = box.querySelector('canvas');
+  if (!cv) { box.innerHTML = ''; cv = document.createElement('canvas'); box.appendChild(cv); }
+  cv.width = OUT_W;
+  cv.height = Math.round(OUT_W * sh / sw);
+
+  const g = cv.getContext('2d');
+  g.imageSmoothingEnabled = true;
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(srcImg, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+}
+
+['#cx', '#cy', '#cw', '#ch'].forEach(s => $(s).addEventListener('input', drawCrop));
+
+$('#cropFile').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const img = new Image();
+  img.onload = () => { srcImg = img; drawCrop(); toast(`Print carregado (${img.naturalWidth}x${img.naturalHeight})`); };
+  img.onerror = () => toast('Não consegui ler essa imagem');
+  img.src = URL.createObjectURL(file);
+});
+
+function cropDataURL() {
+  const cv = $('#cropPreview').querySelector('canvas');
+  return cv ? cv.toDataURL('image/jpeg', 0.92) : null;
+}
+
+$('#btnDownload').addEventListener('click', () => {
+  const cv = $('#cropPreview').querySelector('canvas');
+  if (!cv) return toast('Escolha um print primeiro');
+  const name = ($('#fFile').value || 'carta').trim();
+  cv.toBlob(b => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.download = `${name}.jpg`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }, 'image/jpeg', 0.92);
+  toast(`${name}.jpg baixado — coloque em cards/`);
+});
+
+$('#btnAddCard').addEventListener('click', () => {
+  const isNew = $('#fPlayer').value === '__novo__';
+  const gamertag = isNew ? $('#fGamertag').value.trim() : null;
+  if (isNew && !gamertag) return toast('Preencha o gamertag do novo jogador');
+
+  const filename = ($('#fFile').value || '').trim();
+  if (!filename) return toast('Preencha o nome do arquivo');
+
+  const path = `cards/${filename}.jpg`;
+  const archetype = $('#fArchetype').value.trim();
+  const position  = $('#fPosition').value.trim();
+  const rating    = $('#fRating').value === '' ? null : +$('#fRating').value;
+
+  let player;
+  if (isNew) {
+    const id = slug(gamertag);
+    if (editPlayers.some(p => p.id === id)) return toast('Já existe um jogador com esse gamertag');
+    player = { id, name: gamertag, gamertag, cards: [] };
+    editPlayers.push(player);
+  } else {
+    player = editPlayers.find(p => p.id === $('#fPlayer').value);
+  }
+
+  // id de carta único em todo o elenco
+  const taken = new Set(editPlayers.flatMap(p => p.cards.map(c => c.id)));
+  let vid = `${player.id}-${slug(archetype) || 'carta'}`;
+  let n = 2;
+  while (taken.has(vid)) vid = `${player.id}-${slug(archetype) || 'carta'}-${n++}`;
+
+  player.cards.push({ id: vid, archetype, position, rating, card: path });
+
+  // guarda a prévia neste navegador até o arquivo virar commit
+  const dataURL = cropDataURL();
+  if (dataURL) {
+    try {
+      const blobs = getBlobs();
+      blobs[path] = dataURL;
+      localStorage.setItem(LS_BLOBS, JSON.stringify(blobs));
+    } catch (e) {
+      toast('Carta adicionada, mas a prévia não coube no navegador');
+    }
+  }
+
+  localStorage.setItem(LS_PLAYERS, JSON.stringify(editPlayers));
+  renderPlayers();
+  $('#fArchetype').value = ''; $('#fPosition').value = ''; $('#fRating').value = '';
+  toast(`Carta de ${player.name} adicionada`);
 });
 
 /* --------------------------------------------------------------------- boot */
@@ -292,14 +591,11 @@ $('#btnCopyPlayers').addEventListener('click', async () => {
     if (res.ok) basePlayers = (await res.json()).players || [];
   } catch (e) { /* elenco vazio */ }
 
-  editPlayers = basePlayers.map(p => ({ ...p }));
+  editPlayers = normalize(basePlayers);
   try {
     const saved = JSON.parse(localStorage.getItem(LS_PLAYERS) || 'null');
-    if (Array.isArray(saved)) {
-      // mantém a ordem do repositório e aplica por cima o que foi editado
-      editPlayers = basePlayers.map(p => ({ ...p, ...(saved.find(s => s.id === p.id) || {}) }));
-    }
-  } catch (e) { /* ignora */ }
+    if (Array.isArray(saved) && saved.length) editPlayers = normalize(saved);
+  } catch (e) { /* ignora edição corrompida */ }
 
   renderPlayers();
 })();
