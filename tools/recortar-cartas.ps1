@@ -83,9 +83,11 @@ function Read-Campo($rotulo, $exemplo) {
 
 # --------------------------------------------------------------------- pastas
 
+$CARDS = Join-Path $RAIZ 'cards'
+
 $pastas = @()
 if ($Todas) {
-    $pastas = Get-ChildItem (Join-Path $RAIZ 'cards') -Directory | ForEach-Object { $_.FullName }
+    $pastas = Get-ChildItem $CARDS -Directory | ForEach-Object { $_.FullName }
 } elseif ($Pasta) {
     $pastas = @((Resolve-Path $Pasta).Path)
 } else {
@@ -95,6 +97,70 @@ if ($Todas) {
 Write-Host ''
 Write-Host '  HOJE TEM AQUELA F.C. - recortador de cartas' -ForegroundColor Green
 Write-Host '  ------------------------------------------' -ForegroundColor DarkGray
+
+# ------------------------------------------------- print largado na raiz
+# Jogar o print direto em cards/ e nao dentro da pasta do jogador e o que
+# qualquer um faz. Antes esses arquivos ficavam invisiveis, porque o script
+# so olhava dentro das pastas. Agora ele pergunta de quem e e move pra la.
+
+function Invoke-PrintsSoltos {
+    $soltos = Get-ChildItem $CARDS -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.Extension -match '^\.(jpg|jpeg|png|bmp)$' }
+
+    $paraMover = @()
+    foreach ($p in $soltos) {
+        $img = [System.Drawing.Bitmap]::FromFile($p.FullName)
+        $eh = Test-EhPrint $img
+        $img.Dispose()
+        if ($eh) { $paraMover += $p }
+    }
+    if ($paraMover.Count -eq 0) { return @() }
+
+    Write-Host ''
+    Write-Host "  $($paraMover.Count) print(s) solto(s) em cards/ - de quem sao?" -ForegroundColor Yellow
+
+    $jogadores = @(Get-ChildItem $CARDS -Directory | Sort-Object Name)
+    $destinos = @()
+
+    foreach ($p in $paraMover) {
+        Write-Host ''
+        Write-Host "    $($p.Name)" -ForegroundColor Cyan
+        for ($i = 0; $i -lt $jogadores.Count; $i++) {
+            Write-Host ("      {0,2}) {1}" -f ($i + 1), $jogadores[$i].Name) -ForegroundColor DarkGray
+        }
+        Write-Host '       0) outro jogador (digitar o gamertag)' -ForegroundColor DarkGray
+
+        if ($SemPerguntar) { Write-Passo 'pulando: nao da pra adivinhar de quem e' Yellow; continue }
+
+        $escolha = (Read-Host '      numero').Trim()
+        $destino = $null
+
+        if ($escolha -eq '0') {
+            $tag = (Read-Host '      gamertag').Trim()
+            if (-not $tag) { Write-Passo 'sem gamertag, pulando' Yellow; continue }
+            $destino = Join-Path $CARDS (Get-Slug $tag)
+            New-Item -ItemType Directory -Force -Path $destino | Out-Null
+            Copy-Item (Join-Path $CARDS 'Recortar cartas.bat') $destino -ErrorAction SilentlyContinue
+        }
+        elseif ($escolha -match '^\d+$' -and [int]$escolha -ge 1 -and [int]$escolha -le $jogadores.Count) {
+            $destino = $jogadores[[int]$escolha - 1].FullName
+        }
+        else { Write-Passo 'escolha invalida, pulando' Yellow; continue }
+
+        Move-Item $p.FullName (Join-Path $destino $p.Name) -Force
+        Write-Passo "-> $(Split-Path $destino -Leaf)" Green
+        if ($destinos -notcontains $destino) { $destinos += $destino }
+    }
+    return $destinos
+}
+
+# roda quando a pessoa deu dois cliques na raiz de cards/ ou pediu -Todas
+$naRaiz = ($pastas.Count -eq 1 -and (Resolve-Path $pastas[0]).Path -eq (Resolve-Path $CARDS).Path)
+if ($Todas -or $naRaiz) {
+    $extras = Invoke-PrintsSoltos
+    foreach ($d in $extras) { if ($pastas -notcontains $d) { $pastas += $d } }
+    if ($naRaiz) { $pastas = @($pastas | Where-Object { (Resolve-Path $_).Path -ne (Resolve-Path $CARDS).Path }) }
+}
 
 $novas = @()
 

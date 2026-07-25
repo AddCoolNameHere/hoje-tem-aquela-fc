@@ -16,7 +16,8 @@
     {
       "id": "lucasfms00", "name": "Fuss", "gamertag": "Lucasfms00",
       "cards": [
-        { "id": "lucasfms00-finisher", "archetype": "FINISHER+", "position": "ST", "rating": 100, "card": "cards/lucasfms00/lucasfms00.jpg" }
+        { "id": "lucasfms00-finisher", "archetype": "FINISHER+", "position": "ST", "rating": 100, "card": "cards/lucasfms00/lucasfms00.jpg" },
+        { "id": "lucasfms00-maestro",  "archetype": "MAESTRO",   "position": "CM", "rating": 74,  "card": "cards/lucasfms00/lucasfms00-maestro.jpg" }
       ]
     },
     {
