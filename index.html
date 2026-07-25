@@ -116,9 +116,15 @@
 
   <!-- ============================================================== DIREITA -->
   <div class="col-right">
-    <section class="panel">
-      <div class="panel-head"><h3>Formação</h3></div>
-      <div class="panel-body">
+    <section class="panel painel-formacao" id="painelFormacao">
+      <button class="panel-head" id="cabecalhoFormacao" aria-expanded="true" aria-controls="corpoFormacao">
+        <h3>Formação</h3>
+        <span class="count">
+          <span class="fp-atual" id="formacaoNoPainel">4-3-3</span>
+          <span class="fp-seta">▾</span>
+        </span>
+      </button>
+      <div class="panel-body" id="corpoFormacao">
         <div class="formation-grid" id="formationGrid"></div>
       </div>
     </section>

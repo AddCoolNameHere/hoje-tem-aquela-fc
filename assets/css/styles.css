@@ -245,6 +245,27 @@ input, select { font-family: inherit; }
 }
 .panel-body { padding: 14px 15px; }
 
+/* --------------------------------------------------- painel da formação */
+
+/* O cabeçalho é um <button> para poder recolher no celular; no desktop ele
+   não faz nada e precisa parecer o cabeçalho dos outros painéis. */
+.painel-formacao .panel-head {
+  width: 100%;
+  border-radius: 0;
+  background: none;
+  cursor: default;
+  text-align: left;
+  font: inherit;
+}
+.painel-formacao .fp-atual {
+  font-family: var(--font-head);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--green);
+}
+.painel-formacao .fp-seta { display: none; }
+
 /* --------------------------------------------------------------------- pitch */
 
 .stage { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
@@ -1080,6 +1101,21 @@ input, select { font-family: inherit; }
 
   .roster-list { max-height: none; }
   .formation-grid { grid-template-columns: repeat(3, 1fr); max-height: none; }
+
+  /* A grade das 29 empurraria o elenco pra bem longe do campo, e aí arrastar
+     um jogador vira uma rolagem enorme. No celular ela começa recolhida:
+     fica uma barrinha mostrando a formação atual, e abre no toque. */
+  .painel-formacao .panel-head { cursor: pointer; }
+  .painel-formacao .panel-head:active { background: rgba(0, 230, 118, .07); }
+  .painel-formacao .fp-seta {
+    display: inline-block;
+    margin-left: 7px;
+    color: var(--green-dim);
+    transition: transform .16s ease;
+  }
+  .painel-formacao.is-colapsado .panel-head { border-bottom: none; }
+  .painel-formacao.is-colapsado .panel-body { display: none; }
+  .painel-formacao.is-colapsado .fp-seta { transform: rotate(-90deg); }
 }
 
 @media (max-width: 620px) {

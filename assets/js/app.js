@@ -350,11 +350,51 @@ function renderFormations() {
     `<button class="formation-btn${f === state.formation ? ' is-active' : ''}" data-formation="${f}">${f}</button>`
   ).join('');
 
+  $('#formacaoNoPainel').textContent = state.formation;
+
   // deixa a formação escolhida sempre visível dentro da lista rolável
   const active = grid.querySelector('.is-active');
   if (active && grid.scrollHeight > grid.clientHeight) {
     grid.scrollTop = active.offsetTop - grid.clientHeight / 2 + active.offsetHeight / 2;
   }
+}
+
+/* No celular o painel das formações começa recolhido, senão o elenco fica
+   longe demais do campo e arrastar um jogador vira uma rolagem enorme. */
+const TELA_ESTREITA = () => window.matchMedia('(max-width: 1050px)').matches;
+
+function setupPainelFormacao() {
+  const painel = $('#painelFormacao');
+  const cabecalho = $('#cabecalhoFormacao');
+
+  const aplicar = colapsado => {
+    painel.classList.toggle('is-colapsado', colapsado);
+    cabecalho.setAttribute('aria-expanded', String(!colapsado));
+  };
+
+  aplicar(TELA_ESTREITA());
+
+  cabecalho.addEventListener('click', () => {
+    if (!TELA_ESTREITA()) return;                 // no desktop fica sempre aberto
+    aplicar(!painel.classList.contains('is-colapsado'));
+  });
+
+  // Só reage quando a largura cruza o limite. Sem isso o painel se fechava
+  // sozinho no celular, porque esconder a barra de endereço dispara 'resize'.
+  let eraEstreita = TELA_ESTREITA();
+  window.addEventListener('resize', () => {
+    const agora = TELA_ESTREITA();
+    if (agora === eraEstreita) return;
+    eraEstreita = agora;
+    aplicar(agora);
+  });
+}
+
+/** Depois de escolher no celular, recolhe: a escolha já foi feita. */
+function recolherFormacoesNoCelular() {
+  if (!TELA_ESTREITA()) return;
+  $('#painelFormacao').classList.add('is-colapsado');
+  $('#cabecalhoFormacao').setAttribute('aria-expanded', 'false');
 }
 
 function renderAll() {
@@ -939,7 +979,9 @@ async function shareLink() {
 function setupControls() {
   $('#formationGrid').addEventListener('click', e => {
     const btn = e.target.closest('.formation-btn');
-    if (btn) setFormation(btn.dataset.formation);
+    if (!btn) return;
+    setFormation(btn.dataset.formation);
+    recolherFormacoesNoCelular();
   });
 
   $('#formationTag').addEventListener('click', abrirFormacoes);
@@ -996,6 +1038,7 @@ function setupControls() {
   setupClickPlacement();
   setupModal();
   setupControls();
+  setupPainelFormacao();
   renderAll();
   renderSaved();
 })();
