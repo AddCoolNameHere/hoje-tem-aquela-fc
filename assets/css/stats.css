@@ -198,6 +198,20 @@
 .tabela th.ordenada { color: var(--green); }
 .tabela th .seta { font-size: 9px; margin-left: 4px; opacity: .8; }
 
+/* A coluna do jogador fica presa à esquerda: rolando de lado pra ver as
+   estatísticas, continua dando pra saber de quem é a linha. Só tem efeito
+   quando a tabela nao cabe, entao no desktop largo nao muda nada. */
+.tabela th:first-child,
+.tabela td:first-child {
+  position: sticky;
+  left: 0;
+  border-right: 1px solid var(--line);
+  box-shadow: 7px 0 11px -7px rgba(0, 0, 0, .75);
+}
+.tabela th:first-child { z-index: 5; background: #0d1a13; }   /* canto: acima de tudo */
+.tabela td:first-child { z-index: 3; background: #0b1610; }
+.tabela tbody tr:hover td:first-child { background: #13251b; }
+
 .tabela td {
   padding: 9px 11px;
   border-bottom: 1px solid var(--line-soft);
@@ -232,4 +246,21 @@
   .cartas-grade { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
   .det-quem h2 { font-size: 20px; }
   .det-item .v { font-size: 25px; }
+
+  /* a coluna presa não pode comer a tela: encolhe a carta e corta o nome longo */
+  .tabela th:first-child,
+  .tabela td:first-child { padding-left: 9px; padding-right: 9px; }
+
+  .cel-jogador { gap: 7px; max-width: 118px; }
+  .cel-jogador img { width: 21px; height: 29px; }
+  .cel-jogador > span { min-width: 0; }
+  .cel-jogador .n,
+  .cel-jogador .g {
+    display: block;
+    max-width: 84px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .cel-jogador .n { font-size: 12px; }
 }
