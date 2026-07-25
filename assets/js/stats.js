@@ -70,7 +70,12 @@ function montar(rawPlayers) {
   jogadores = rawPlayers.map(p => {
     const cards = (Array.isArray(p.cards) && p.cards.length) ? p.cards
       : [{ id: p.id + '-1', archetype: p.archetype, position: p.position, rating: p.rating, card: p.card }];
-    const s = porId[p.id] || null;
+
+    // o que o admin publicou junto do jogador ganha do data/stats.json
+    const doRepo = porId[p.id] || null;
+    const s = (p.stats && Object.keys(p.stats).length)
+      ? { ...(doRepo || {}), ...p.stats }
+      : doRepo;
 
     return {
       id: p.id,

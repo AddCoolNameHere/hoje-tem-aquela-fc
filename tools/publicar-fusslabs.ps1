@@ -67,7 +67,8 @@ $ASSETS = @(
   'assets/js/archetypes.js',
   'assets/js/export.js',
   'assets/js/app.js',
-  'assets/js/stats.js'
+  'assets/js/stats.js',
+  'assets/js/ocr-stats.js'
 )
 
 $versao = @{}

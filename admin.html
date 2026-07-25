@@ -108,6 +108,41 @@
   .form-grid label { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: .15em; color: var(--txt-faint); margin-bottom: 5px; }
   .form-grid input, .form-grid select { width: 100%; }
 
+  /* ---- estatísticas ---- */
+  .ler-print {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 13px 14px;
+    background: #081109;
+    margin-bottom: 16px;
+  }
+  .ler-print input[type=file], .ler-print select { width: 100%; }
+
+  .tabela-stats-rolagem { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); }
+  .tabela-stats { border-collapse: collapse; font-size: 12px; width: 100%; }
+  .tabela-stats th {
+    position: sticky; top: 0;
+    padding: 9px 6px;
+    background: #0d1a13;
+    border-bottom: 1px solid var(--line);
+    font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--txt-faint); white-space: nowrap;
+  }
+  .tabela-stats td { padding: 4px 5px; border-bottom: 1px solid var(--line-soft); }
+  .tabela-stats tr:last-child td { border-bottom: none; }
+  .tabela-stats input {
+    width: 58px; padding: 5px 6px; text-align: right;
+    font-variant-numeric: tabular-nums; font-size: 12px;
+  }
+  .tabela-stats .quem {
+    position: sticky; left: 0; z-index: 2;
+    background: #0b1610;
+    border-right: 1px solid var(--line);
+    white-space: nowrap; font-weight: 600; color: var(--txt);
+  }
+  .tabela-stats th:first-child { z-index: 3; left: 0; }
+  .tabela-stats tr.mexido .quem { color: var(--green); }
+
   @media (max-width: 640px) {
     .crop-grid { grid-template-columns: minmax(0,1fr); }
     .p-variant, .p-varhead { grid-template-columns: 42px minmax(0,1fr) 70px 48px 24px; }
@@ -286,6 +321,44 @@
 
   <section class="panel">
     <div class="panel-head">
+      <h3>Estatísticas</h3>
+      <span class="count" id="statsCount">0</span>
+    </div>
+    <div class="panel-body">
+      <p style="font-size:12px;color:var(--txt-faint);margin:0 0 14px;line-height:1.6">
+        Dá pra digitar na mão ou deixar o print preencher. Os números vão junto no
+        <strong>Publicar</strong> lá em cima e aparecem na página de estatísticas.
+      </p>
+
+      <div class="ler-print">
+        <div class="form-grid">
+          <div>
+            <label for="sPrint">Print da tela Club Squad</label>
+            <input type="file" id="sPrint" accept="image/*">
+          </div>
+          <div>
+            <label for="sJogador">De quem é</label>
+            <select id="sJogador"></select>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-primary" id="btnLerPrint" disabled>Ler os números do print</button>
+        </div>
+        <p id="sMsg" style="font-size:12px;margin:10px 0 0;line-height:1.6;color:var(--txt-faint)"></p>
+      </div>
+
+      <div class="tabela-stats-rolagem">
+        <table class="tabela-stats" id="tabelaStats"></table>
+      </div>
+
+      <div class="btn-row" style="margin-top:14px">
+        <button class="btn" id="btnStatsRepo">Puxar do data/stats.json</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
       <h3>data/players.json</h3>
       <button class="btn" id="btnCopyPlayers" style="padding:5px 10px;font-size:10.5px">Copiar</button>
     </div>
@@ -297,6 +370,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="assets/js/archetypes.js"></script>
+<script src="assets/js/ocr-stats.js"></script>
 <script>
 const LS_CLUB = 'htafc:club';
 const $ = s => document.querySelector(s);
@@ -537,6 +611,7 @@ function renderPlayers() {
 
   syncJson();
   refreshPlayerSelect();
+  renderStats();
 }
 
 $('#playerRows').addEventListener('input', e => {
@@ -636,6 +711,131 @@ $('#btnCopyPlayers').addEventListener('click', async () => {
   catch { toast('Não consegui copiar — selecione manualmente'); }
 });
 
+/* ------------------------------------------------------------ estatísticas */
+
+const COLUNAS_STATS = [
+  ['appearances',    'Jogos'],
+  ['goals',          'Gols'],
+  ['assists',        'Assist.'],
+  ['cleanSheets',    'S/ sofrer'],
+  ['motm',           'Craque'],
+  ['redCards',       'Verm.'],
+  ['passCompletion', 'Passe %'],
+  ['shotsOnTarget',  'Chute %'],
+];
+
+/** Garante o objeto de stats no jogador e devolve ele. */
+function statsDe(p) {
+  if (!p.stats) p.stats = {};
+  return p.stats;
+}
+
+function renderStats() {
+  const comNumero = editPlayers.filter(p => p.stats && p.stats.appearances != null).length;
+  $('#statsCount').textContent = `${comNumero} de ${editPlayers.length} com números`;
+
+  $('#tabelaStats').innerHTML =
+    `<thead><tr><th>Jogador</th>${COLUNAS_STATS.map(c => `<th>${c[1]}</th>`).join('')}</tr></thead>` +
+    `<tbody>${editPlayers.map((p, i) => `
+      <tr data-linha="${i}">
+        <td class="quem">${esc(p.name)}</td>
+        ${COLUNAS_STATS.map(([k]) => `
+          <td><input type="number" min="0" data-p="${i}" data-s="${k}"
+                     value="${p.stats?.[k] ?? ''}"></td>`).join('')}
+      </tr>`).join('')}</tbody>`;
+
+  syncJson();
+}
+
+$('#tabelaStats').addEventListener('input', e => {
+  const el = e.target;
+  if (!el.dataset.s) return;
+  const p = editPlayers[+el.dataset.p];
+  const s = statsDe(p);
+  if (el.value === '') delete s[el.dataset.s];
+  else s[el.dataset.s] = +el.value;
+  el.closest('tr').classList.add('mexido');
+  syncJson();
+});
+
+/* traz os números que estão commitados em data/stats.json */
+$('#btnStatsRepo').addEventListener('click', async () => {
+  const d = await fetch('data/stats.json', { cache: 'no-store' }).then(r => r.json()).catch(() => null);
+  if (!d?.stats?.length) return toast('Não consegui ler o data/stats.json');
+
+  let n = 0;
+  d.stats.forEach(s => {
+    const p = editPlayers.find(x => x.id === s.id);
+    if (!p) return;
+    const alvo = statsDe(p);
+    COLUNAS_STATS.forEach(([k]) => { if (s[k] != null) alvo[k] = s[k]; });
+    if (s.position) alvo.position = s.position;
+    if (s.height)   alvo.height   = s.height;
+    n++;
+  });
+  renderStats();
+  toast(`${n} jogador(es) preenchido(s) do repositório`);
+});
+
+/* ---- ler os números direto do print ---- */
+
+let printStats = null;
+
+function msgStats(txt, cor = 'var(--txt-faint)') {
+  $('#sMsg').textContent = txt;
+  $('#sMsg').style.color = cor;
+}
+
+$('#sPrint').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = new Image();
+  img.onload = () => {
+    printStats = img;
+    $('#btnLerPrint').disabled = false;
+    const proporcao = img.naturalWidth / img.naturalHeight;
+    msgStats(Math.abs(proporcao - 16 / 9) > 0.03
+      ? `Print ${img.naturalWidth}x${img.naturalHeight} — não é 16:9, a leitura pode sair errada.`
+      : `Print ${img.naturalWidth}x${img.naturalHeight}. Escolha de quem é e clique em ler.`,
+      Math.abs(proporcao - 16 / 9) > 0.03 ? 'var(--gold)' : 'var(--txt-faint)');
+  };
+  img.onerror = () => msgStats('Não consegui abrir essa imagem.', '#ff8f7d');
+  img.src = URL.createObjectURL(f);
+});
+
+$('#btnLerPrint').addEventListener('click', () => {
+  if (!printStats) return;
+  const p = editPlayers.find(x => x.id === $('#sJogador').value);
+  if (!p) return msgStats('Escolha de quem é o print.', '#ff8f7d');
+
+  const cv = document.createElement('canvas');
+  cv.width = printStats.naturalWidth;
+  cv.height = printStats.naturalHeight;
+  cv.getContext('2d').drawImage(printStats, 0, 0);
+
+  const { valores, confianca, linhasVazias } = ocrLerEstatisticas(cv);
+  const lidos = Object.keys(valores).length;
+
+  if (!lidos) {
+    return msgStats('Não achei os números. Confira se é a tela Club Squad com o jogador selecionado.', '#ff8f7d');
+  }
+
+  Object.assign(statsDe(p), valores);
+  renderStats();
+  $(`#tabelaStats tr[data-linha="${editPlayers.indexOf(p)}"]`)?.classList.add('mexido');
+
+  const resumo = COLUNAS_STATS.filter(([k]) => valores[k] != null)
+    .map(([k, r]) => `${r} ${valores[k]}`).join(' · ');
+
+  const baixa = confianca < 0.9;
+  msgStats(
+    `${p.name}: ${resumo}.` +
+    (linhasVazias.length ? ` Não li ${linhasVazias.length} linha(s).` : '') +
+    (baixa ? ' Confiança baixa — confira antes de publicar.' : ' Confira e publique.'),
+    baixa || linhasVazias.length ? 'var(--gold)' : 'var(--green)');
+  toast(`${lidos} números lidos`);
+});
+
 /* --------------------------------------------------- recortar e adicionar carta */
 
 let srcImg = null;
@@ -648,6 +848,12 @@ function refreshPlayerSelect() {
     + '<option value="__novo__">+ Novo jogador</option>';
   sel.value = editPlayers.some(p => p.id === keep) || keep === '__novo__' ? keep : (editPlayers[0]?.id || '__novo__');
   $('#newPlayerWrap').style.display = sel.value === '__novo__' ? '' : 'none';
+
+  // o select da seção de estatísticas usa a mesma lista, sem a opção de novo
+  const sj = $('#sJogador');
+  const antes = sj.value;
+  sj.innerHTML = editPlayers.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+  if (editPlayers.some(p => p.id === antes)) sj.value = antes;
 }
 
 $('#fPlayer').addEventListener('change', () => {
